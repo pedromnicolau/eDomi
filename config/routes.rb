@@ -19,8 +19,11 @@ Rails.application.routes.draw do
   end
 
   # Para compradores
-  resources :properties, only: [ :index, :show, :new, :create, :edit, :update ] do
+  resources :properties, only: [ :index, :show, :new, :create, :edit, :update, :destroy ] do
     resources :visits, only: [ :new, :create, :edit, :update ]
+    member do
+      delete "remove_photo/:photo_id", to: "properties#remove_photo", as: :remove_photo
+    end
   end
 
   resources :sales, only: [ :index, :show ]  # histórico de compras

@@ -9,4 +9,6 @@ class Property < ApplicationRecord
 
   has_many :visits, dependent: :destroy
   has_one  :sale, dependent: :nullify
+
+  has_many_attached :photos
 end

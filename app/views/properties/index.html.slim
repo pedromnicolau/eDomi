@@ -1,0 +1,36 @@
+h1.mb-4 Imóveis disponíveis
+
+- if current_user&.role.in?(%w[admin agent])
+  = link_to 'Nova propriedade', new_property_path, class: 'btn btn-success mb-4'
+
+.row.row-cols-1.row-cols-md-2.row-cols-lg-3.g-4
+  - @properties.each do |property|
+    .col
+      .card.h-100.shadow-sm.border-0
+        - if property.photos.attached?
+          = image_tag property.photos.first, class: "card-img-top", alt: property.title
+        - else
+          .card-img-top.d-flex.align-items-center.justify-content-center.bg-light style="height:250px;"
+            span.text-muted Sem imagem
+        .card-body
+          h5.card-title
+            = link_to property.title, property_path(property), class: "text-decoration-none"
+          p.card-text.mb-1
+            strong Localização:
+            | #{property.city} - #{property.state}
+          p.card-text.mb-1
+            strong Preço:
+            | R$ #{number_to_currency(property.price, unit: "", separator: ",", delimiter: ".")}
+          .d-flex.flex-wrap.gap-3.mt-2
+            span.badge.bg-primary
+              i.bi.bi-bath
+              | Banheiros: #{property.bathrooms || '-'}
+            span.badge.bg-primary
+              i.bi.bi-door-open
+              | Quartos: #{property.bedrooms || '-'}
+            span.badge.bg-primary
+              i.bi.bi-aspect-ratio
+              | M²: #{property.area || '-'}
+            span.badge.bg-primary
+              i.bi.bi-car-front
+              | Vagas: #{property.parking_spaces || '-'}

@@ -16,6 +16,7 @@ module Admin
 
     def create
       @property = Property.new(property_params)
+      @property.agent_id = current_user.id
       if @property.save
         redirect_to admin_property_path(@property), notice: "Imóvel criado com sucesso"
       else
@@ -26,6 +27,11 @@ module Admin
     def edit; end
 
     def update
+      # Remove o parâmetro :photos se não houver novos arquivos anexados
+      if params[:property][:photos].blank?
+        params[:property].delete(:photos)
+      end
+
       if @property.update(property_params)
         redirect_to admin_property_path(@property), notice: "Imóvel atualizado"
       else
@@ -45,12 +51,14 @@ module Admin
     end
 
     def property_params
-      params.require(:property).permit(:title, :description, :price, :property_type,
-                                       :area, :bedrooms, :bathrooms, :parking_spaces,
-                                       :furnished, :condominium_fee, :iptu,
-                                       :year_built, :address, :neighborhood, :city,
-                                       :state, :zip_code, :status, :agent_id,
-                                       property_photos_attributes: [ :id, :image, :position, :_destroy ])
+      params.require(:property).permit(
+        :title, :description, :price, :property_type,
+        :area, :bedrooms, :bathrooms, :parking_spaces,
+        :furnished, :condominium_fee, :iptu,
+        :year_built, :address, :neighborhood, :city,
+        :state, :zip_code, :status, :agent_id,
+        photos: [] # permite múltiplas imagens via Active Storage
+      )
     end
 
     def require_admin

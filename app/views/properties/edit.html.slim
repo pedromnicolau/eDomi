@@ -1,0 +1,13 @@
+h1 Editar Propriedade
+
+- if @property.photos.attached?
+  h3 Imagens já anexadas
+  .row
+    - @property.photos.each do |photo|
+      .col-md-2.mb-2
+        = image_tag photo, class: "img-thumbnail"
+        = button_to "Remover", remove_photo_property_path(@property, photo_id: photo.id), method: :delete, class: "btn btn-sm btn-danger mt-1", data: { turbo_confirm: "Remover esta imagem?" }
+
+= render "form", property: @property
+
+= link_to "Todas as propriedades", properties_path, class: "btn btn-secondary"

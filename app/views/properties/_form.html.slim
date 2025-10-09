@@ -1,0 +1,39 @@
+= form_with(model: property, local: true, html: { multipart: true }) do |form|
+  - if property.errors.any?
+    .alert.alert-danger
+      h4 Erros:
+      ul
+        - property.errors.full_messages.each do |msg|
+          li = msg
+
+  .mb-3
+    = form.label :title, "Título"
+    = form.text_field :title, class: "form-control"
+  .mb-3
+    = form.label :description, "Descrição"
+    = form.text_area :description, class: "form-control"
+  .mb-3
+    = form.label :price, "Preço"
+    = form.number_field :price, step: 0.01, class: "form-control"
+  .mb-3
+    = form.label :city, "Cidade"
+    = form.text_field :city, class: "form-control"
+  .mb-3
+    = form.label :state, "Estado"
+    = form.text_field :state, class: "form-control"
+  .mb-3
+    = form.label :bathrooms, "Banheiros"
+    = form.number_field :bathrooms, class: "form-control"
+  .mb-3
+    = form.label :bedrooms, "Quartos"
+    = form.number_field :bedrooms, class: "form-control"
+  .mb-3
+    = form.label :area, "Área (m²)"
+    = form.number_field :area, class: "form-control"
+  .mb-3
+    = form.label :parking_spaces, "Vagas"
+    = form.number_field :parking_spaces, class: "form-control"
+  .mb-3
+    = form.label :photos, "Fotos"
+    = form.file_field :photos, multiple: true, class: "form-control"
+  = form.submit class: "btn btn-success"
