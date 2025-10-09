@@ -1,0 +1,12 @@
+<h1>Imóveis disponíveis</h1>
+
+<% @properties.each do |property| %>
+  <div class="property-card">
+    <h2><%= link_to property.title, property_path(property) %></h2>
+    <p><%= property.city %> - <%= property.state %></p>
+    <p>R$ <%= number_to_currency(property.price, unit: "", separator: ",", delimiter: ".") %></p>
+    <% if property.property_photos.attached? %>
+      <%= image_tag property.property_photos.first.image.variant(resize_to_limit: [300, 200]) %>
+    <% end %>
+  </div>
+<% end %>

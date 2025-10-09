@@ -1,0 +1,43 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  title: MyString
+  description: MyText
+  price: 9.99
+  property_type: 1
+  area: 9.99
+  bedrooms: 1
+  bathrooms: 1
+  parking_spaces: 1
+  furnished: false
+  condominium_fee: 9.99
+  iptu: 9.99
+  year_built: 1
+  address: MyString
+  neighborhood: MyString
+  city: MyString
+  state: MyString
+  zip_code: MyString
+  status: 1
+  agent: one
+
+two:
+  title: MyString
+  description: MyText
+  price: 9.99
+  property_type: 1
+  area: 9.99
+  bedrooms: 1
+  bathrooms: 1
+  parking_spaces: 1
+  furnished: false
+  condominium_fee: 9.99
+  iptu: 9.99
+  year_built: 1
+  address: MyString
+  neighborhood: MyString
+  city: MyString
+  state: MyString
+  zip_code: MyString
+  status: 1
+  agent: two

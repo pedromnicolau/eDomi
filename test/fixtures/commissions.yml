@@ -1,0 +1,17 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  sale: one
+  agent_id: 
+  percentage: 9.99
+  value: 9.99
+  paid: false
+  paid_at: 2025-10-08 22:10:02
+
+two:
+  sale: two
+  agent_id: 
+  percentage: 9.99
+  value: 9.99
+  paid: false
+  paid_at: 2025-10-08 22:10:02

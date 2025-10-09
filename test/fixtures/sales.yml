@@ -1,0 +1,15 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  property: one
+  agent_id: 
+  buyer_id: 
+  sale_price: 9.99
+  sale_date: 2025-10-08
+
+two:
+  property: two
+  agent_id: 
+  buyer_id: 
+  sale_price: 9.99
+  sale_date: 2025-10-08

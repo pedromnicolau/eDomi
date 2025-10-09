@@ -1,0 +1,17 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  property: one
+  buyer_id: 
+  agent_id: 
+  scheduled_at: 2025-10-08 22:09:36
+  status: 1
+  notes: MyText
+
+two:
+  property: two
+  buyer_id: 
+  agent_id: 
+  scheduled_at: 2025-10-08 22:09:36
+  status: 1
+  notes: MyText
