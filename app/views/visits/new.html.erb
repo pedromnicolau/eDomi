@@ -1,0 +1,30 @@
+<h1>Agendar Visita</h1>
+
+<%= form_with(model: [@property, @visit], local: true) do |form| %>
+  <% if @visit.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@visit.errors.count, "erro") %> proibiu este agendamento:</h2>
+      <ul>
+        <% @visit.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="mb-3">
+    <%= form.label :scheduled_at, "Data e Hora da Visita", class: "form-label" %>
+    <%= form.datetime_select :scheduled_at, {}, {class: "form-select"} %>
+  </div>
+
+  <div class="mb-3">
+    <%= form.label :notes, "Observações", class: "form-label" %>
+    <%= form.text_area :notes, class: "form-control" %>
+  </div>
+
+  <div class="d-grid gap-2">
+    <%= form.submit "Agendar Visita", class: "btn btn-primary" %>
+  </div>
+<% end %>
+
+<%= link_to "Voltar", property_path(@property) %>

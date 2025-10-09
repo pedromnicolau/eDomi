@@ -19,8 +19,8 @@ Rails.application.routes.draw do
   end
 
   # Para compradores
-  resources :properties, only: [ :index, :show ] do
-    resources :visits, only: [ :new, :create ]
+  resources :properties, only: [ :index, :show, :new, :create, :edit, :update ] do
+    resources :visits, only: [ :new, :create, :edit, :update ]
   end
 
   resources :sales, only: [ :index, :show ]  # histórico de compras

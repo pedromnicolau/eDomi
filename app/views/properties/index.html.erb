@@ -1,12 +1,32 @@
-<h1>Imóveis disponíveis</h1>
+<h1 class="mb-4">Imóveis disponíveis</h1>
 
-<% @properties.each do |property| %>
-  <div class="property-card">
-    <h2><%= link_to property.title, property_path(property) %></h2>
-    <p><%= property.city %> - <%= property.state %></p>
-    <p>R$ <%= number_to_currency(property.price, unit: "", separator: ",", delimiter: ".") %></p>
-    <% if property.property_photos.attached? %>
-      <%= image_tag property.property_photos.first.image.variant(resize_to_limit: [300, 200]) %>
-    <% end %>
-  </div>
-<% end %>
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+  <% @properties.each do |property| %>
+    <div class="col">
+      <div class="card h-100 shadow-sm border-0">
+        <% photo = property.property_photos.find { |p| p.image.attached? } %>
+        <% if photo %>
+          <%= image_tag url_for(photo.image.variant(resize_to_limit: [400, 250])), class: "card-img-top", alt: property.title %>
+        <% else %>
+          <div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="height:250px;">
+            <span class="text-muted">Sem imagem</span>
+          </div>
+        <% end %>
+        <div class="card-body">
+          <h5 class="card-title"><%= link_to property.title, property_path(property), class: "text-decoration-none" %></h5>
+          <p class="card-text mb-1"><strong>Localização:</strong> <%= property.city %> - <%= property.state %></p>
+          <p class="card-text mb-1"><strong>Preço:</strong> R$ <%= number_to_currency(property.price, unit: "", separator: ",", delimiter: ".") %></p>
+          <div class="d-flex flex-wrap gap-3 mt-2">
+            <span class="badge bg-primary"><i class="bi bi-bath"></i> Banheiros: <%= property.bathrooms || '-' %></span>
+            <span class="badge bg-primary"><i class="bi bi-door-open"></i> Quartos: <%= property.bedrooms || '-' %></span>
+            <span class="badge bg-primary"><i class="bi bi-aspect-ratio"></i> M²: <%= property.area || '-' %></span>
+            <span class="badge bg-primary"><i class="bi bi-car-front"></i> Vagas: <%= property.parking_spaces || '-' %></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div>
+
+<!-- Bootstrap Icons -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">

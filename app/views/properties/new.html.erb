@@ -1,0 +1,67 @@
+<h1>Cadastrar Propriedade</h1>
+
+<%= form_with(model: @property, local: true, html: { multipart: true }) do |form| %>
+  <% if @property.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@property.errors.count, "erro") %> proibiu este cadastro:</h2>
+      <ul>
+        <% @property.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="mb-3">
+    <%= form.label :title, "Título", class: "form-label" %>
+    <%= form.text_field :title, class: "form-control" %>
+  </div>
+
+  <div class="mb-3">
+    <%= form.label :description, "Descrição", class: "form-label" %>
+    <%= form.text_area :description, class: "form-control" %>
+  </div>
+
+  <div class="mb-3">
+    <%= form.label :property_type, "Tipo de Propriedade", class: "form-label" %>
+    <%= form.select :property_type, Property.property_types.keys.map { |type| [type.humanize, type] }, {}, class: "form-select" %>
+  </div>
+
+  <div class="mb-3">
+    <%= form.label :status, "Status", class: "form-label" %>
+    <%= form.select :status, Property.statuses.keys.map { |status| [status.humanize, status] }, {}, class: "form-select" %>
+  </div>
+
+  <div class="mb-3">
+    <%= form.label :price, "Preço", class: "form-label" %>
+    <%= form.number_field :price, step: 0.01, class: "form-control" %>
+  </div>
+
+  <div class="mb-3">
+    <%= form.label :city, "Cidade", class: "form-label" %>
+    <%= form.text_field :city, class: "form-control" %>
+  </div>
+
+  <div class="mb-3">
+    <%= form.label :state, "Estado", class: "form-label" %>
+    <%= form.text_field :state, class: "form-control" %>
+  </div>
+
+  <div class="mb-3">
+    <%= form.label :agent_id, "Corretor", class: "form-label" %>
+    <%= form.number_field :agent_id, class: "form-control" %>
+  </div>
+
+  <div class="mb-3">
+    <%= form.fields_for :property_photos do |photo_fields| %>
+      <%= photo_fields.label :image, "Imagem destacada", class: "form-label" %>
+      <%= photo_fields.file_field :image, class: "form-control" %>
+    <% end %>
+  </div>
+
+  <div class="d-grid gap-2">
+    <%= form.submit "Cadastrar Propriedade", class: "btn btn-primary" %>
+  </div>
+<% end %>
+
+<%= link_to "Voltar", properties_path %>
