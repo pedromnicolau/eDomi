@@ -1,19 +1,28 @@
 h1 = @property.title
-p = @property.description
-p R$ #{number_to_currency(@property.price, unit: "", separator: ",", delimiter: ".")}
-p #{@property.city} - #{@property.state}
+p = @property.property_type
 
-= link_to "Editar Propriedade", edit_property_path(@property), class: "btn btn-primary"
-= button_to "Excluir Propriedade", property_path(@property), method: :delete, form: { "onsubmit": "return confirm('Tem certeza que deseja excluir esta propriedade?')" }, class: "btn btn-danger mx-2"
-
-- if user_signed_in? && current_user.buyer?
-  = link_to "Agendar visita", new_property_visit_path(@property), class: "btn btn-success my-3"
-
-h3 Fotos
 - if @property.photos.attached?
   .row
     - @property.photos.each do |photo|
       .col-md-3.mb-2
         = image_tag photo, class: "img-fluid"
+
+p R$ #{number_to_currency(@property.price, unit: "", separator: ",", delimiter: ".")}
+p = @property.area
+p = @property.bedrooms
+p = @property.bathrooms
+p = @property.parking_spaces
+p Mobilhado: #{ @property.furnished }
+p = @property.description
+p Endereço: #{ @property.address }
+p Bairro: #{ @property.neighborhood }
+p #{@property.city} - #{@property.state}
+
+- if current_user.role != 'buyer'
+  = link_to "Editar Propriedade", edit_property_path(@property), class: "btn btn-primary"
+  = button_to "Excluir Propriedade", property_path(@property), method: :delete, form: { "onsubmit": "return confirm('Tem certeza que deseja excluir esta propriedade?')" }, class: "btn btn-danger mx-2"
+
+- if user_signed_in? && current_user.buyer?
+  = link_to "Agendar visita", new_property_visit_path(@property), class: "btn btn-success my-3"
 
 = link_to "Todas as propriedades", properties_path, class: "btn btn-secondary"

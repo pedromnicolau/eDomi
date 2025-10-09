@@ -1,70 +1,81 @@
 class PropertiesController < ApplicationController
-  before_action :authenticate_user!, only: [ :show, :new, :create, :edit, :update ]
+  before_action :authenticate_user!
+  before_action :set_property, only: [ :show, :edit, :update, :destroy ]
+  before_action :authorize_access!, only: [ :show, :edit, :update, :destroy ]
+  before_action :authorize_create!, only: [ :new, :create ]
 
   def index
-    @properties = Property.available.includes(:property_photos)
+    if current_user.admin?
+      @properties = Property.includes(:property_photos).all
+    elsif current_user.agent?
+      @properties = current_user.properties.includes(:property_photos)
+    else
+      @properties = Property.includes(:property_photos).where(status: "available")
+    end
   end
 
-  def show
-    @property = Property.find(params[:id])
-    @visit = Visit.new
-  end
+  def show; end
 
   def new
-    @property = Property.new
-  end
-
-  def edit
-    @property = Property.find(params[:id])
+    @property = current_user.properties.new
   end
 
   def create
-    @property = Property.new(property_params)
-    @property.agent_id = current_user.id
+    @property = current_user.properties.new(property_params)
     if @property.save
-      redirect_to property_path(@property), notice: "Propriedade cadastrada com sucesso!"
+      redirect_to property_path(@property), notice: "Imóvel criado"
     else
       render :new
     end
   end
 
+  def edit; end
+
   def update
-    @property = Property.find(params[:id])
-
-    # Separe as imagens dos demais atributos
-    photos_param = params[:property].delete(:photos)
-
     if @property.update(property_params)
-      # Adicione novas imagens sem remover as antigas
-      if photos_param.present?
-        uploaded_photos = Array(photos_param).reject { |p| p.blank? }
-        @property.photos.attach(uploaded_photos) if uploaded_photos.any?
-      end
-      redirect_to @property, notice: "Propriedade atualizada com sucesso."
+      redirect_to property_path(@property), notice: "Imóvel atualizado"
     else
-      render :edit, status: :unprocessable_entity
+      render :edit
     end
   end
 
   def destroy
-    @property = Property.find(params[:id])
     @property.destroy
-    redirect_to properties_path, notice: "Propriedade excluída com sucesso."
-  end
-
-  def remove_photo
-    @property = Property.find(params[:id])
-    photo = @property.photos.find(params[:photo_id])
-    photo.purge
-    redirect_to edit_property_path(@property), notice: "Imagem removida com sucesso."
+    redirect_to properties_path, notice: "Imóvel deletado"
   end
 
   private
 
+  def set_property
+    @property = Property.find(params[:id])
+  end
+
+  def authorize_access!
+    if current_user.admin?
+      nil
+    elsif current_user.agent?
+      redirect_to properties_path, alert: "Acesso negado" unless @property.agent_id == current_user.id
+    else
+      if action_name != "show"
+        redirect_to properties_path, alert: "Acesso negado"
+      else
+        redirect_to properties_path, alert: "Acesso negado" unless @property.status == "available"
+      end
+    end
+  end
+
+  def authorize_create!
+    unless current_user.admin? || current_user.agent?
+      redirect_to properties_path, alert: "Acesso negado"
+    end
+  end
+
   def property_params
-    params.require(:property).permit(
-      :title, :description, :price, :city, :state, :bathrooms, :bedrooms, :area, :parking_spaces,
-      photos: []
-    )
+    params.require(:property).permit(:title, :description, :price, :property_type,
+                                     :area, :bedrooms, :bathrooms, :parking_spaces,
+                                     :furnished, :condominium_fee, :iptu,
+                                     :year_built, :address, :neighborhood, :city,
+                                     :state, :zip_code, :status,
+                                     property_photos_attributes: [ :id, :image, :position, :_destroy ])
   end
 end
