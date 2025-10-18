@@ -22,7 +22,7 @@ p #{@property.city} - #{@property.state}
   = link_to "Editar Propriedade", edit_property_path(@property), class: "btn btn-primary"
   = button_to "Excluir Propriedade", property_path(@property), method: :delete, form: { "onsubmit": "return confirm('Tem certeza que deseja excluir esta propriedade?')" }, class: "btn btn-danger mx-2"
 
-- if user_signed_in? && current_user.buyer?
+- if user_signed_in?
   = link_to "Agendar visita", new_property_visit_path(@property), class: "btn btn-success my-3"
 
 = link_to "Todas as propriedades", properties_path, class: "btn btn-secondary"
