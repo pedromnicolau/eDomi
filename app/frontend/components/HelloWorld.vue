@@ -7,59 +7,42 @@
         <p class="mb-1">SPA rodando com Bootstrap 🎉</p>
         <p class="mb-1">Olá, {{ name }} — contador: {{ count }}</p>
 
-        <button class="btn btn-primary" @click="inc()">Incrementar</button>
+        <button class="btn btn-primary me-2" @click="inc()">Incrementar</button>
+        <button class="btn btn-secondary" @click="editing = !editing">
+          {{ editing ? 'Cancelar' : 'Mudar Nome' }}
+        </button>
+
+        <!-- Input para digitar o nome -->
+        <div v-if="editing" class="mt-3">
+          <input type="text" v-model="tempName" class="form-control mb-2" placeholder="Digite seu nome">
+          <button class="btn btn-success" @click="saveName()">Salvar</button>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-  import { ref } from 'vue'
-
-  // props (sem tipagem explícita)
-  const props = defineProps({
-    name: {
-      type: String,
-      default: 'Visitante'
-    }
-  })
-
-  // reatividade normal
-  const count = ref(0)
-
-  // função JS pura
-  // function inc(step = 1) {
-  //   count.value += step
-  //   return count.value
-  // }
-
-  const inc = (step = 1) => {
-    count.value += step
-    return count.value
-  }
-
-  // valor default pra exibir no template
-  const name = props.name
-</script>
-
-
-<!-- <script setup lang="ts">
 import { ref } from 'vue'
 
-// props tipadas
-const props = defineProps<{
-  name?: string
-}>()
+const props = defineProps({
+  name: {
+    type: String,
+    default: 'Visitante'
+  }
+})
 
-// ref tipada
-const count = ref<number>(0)
+// estado do contador
+const count = ref(0)
+const inc = (step = 1) => count.value += step
 
-// função com tipos (argumento + retorno)
-function inc(step: number = 1): number {
-  count.value += step
-  return count.value
+// estado de edição do nome
+const editing = ref(false)
+const tempName = ref(props.name)  // armazena temporariamente o novo nome
+const name = ref(props.name)      // nome que aparece no HTML
+
+const saveName = () => {
+  name.value = tempName.value
+  editing.value = false
 }
-
-// valor default pra exibir no template
-const name = props.name ?? 'Visitante'
-</script> -->
+</script>

@@ -1,13 +1,16 @@
 import { defineConfig } from 'vite'
 import RubyPlugin from 'vite-plugin-ruby'
 import vue from '@vitejs/plugin-vue'
-import { fileURLToPath, URL } from 'node:url'
+import path from 'path'
 
 export default defineConfig({
-  plugins: [RubyPlugin(), vue()],
+  plugins: [
+    RubyPlugin(),
+    vue(),
+  ],
   resolve: {
     alias: {
-      '@': fileURLToPath(new URL('./app/frontend', import.meta.url))
-    }
-  }
+      '@': path.resolve(__dirname, 'app/frontend'),
+    },
+  },
 })
