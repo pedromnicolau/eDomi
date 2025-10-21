@@ -14,4 +14,6 @@ Rails.application.routes.draw do
   root "spa#index"
 
   get "*path", to: "spa#index", constraints: ->(req) { req.format.html? }
+
+  resources :properties, only: [ :index ]
 end
