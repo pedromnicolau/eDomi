@@ -1,0 +1,19 @@
+<%# ...existing code... %>
+
+<!-- redirect back to desired SPA path after sign in (set by frontend before redirecting to /users/sign_in) -->
+<script>
+  (function () {
+    try {
+      var target = localStorage.getItem('after_sign_in')
+      if (target) {
+        localStorage.removeItem('after_sign_in')
+        // Use replace to avoid leaving login in history
+        window.location.replace(target)
+      }
+    } catch (e) {
+      // ignore
+    }
+  })();
+</script>
+
+<%# ...existing code (the SPA root element / mount point) ...%>

@@ -1,5 +1,7 @@
 Rails.application.routes.draw do
-  devise_for :users
+  # usar controller customizado para sessions para capturar redirect_to na tela de login
+  devise_for :users, controllers: { sessions: "users/sessions" }
+
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
@@ -16,5 +18,7 @@ Rails.application.routes.draw do
   get "*path", to: "spa#index", constraints: ->(req) { req.format.html? }
 
   resources :properties
+  resources :visits, only: [ :create ]
+  resources :notifications, only: [ :index ]
   get "/current_user", to: "users#current"
 end
