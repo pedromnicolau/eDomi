@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "allowJs": true,
+    "checkJs": false,
+    "noEmit": true,                 // <— impede o TS de gravar/gerar arquivos
+    "jsx": "preserve",
+    "types": ["node", "vite/client"],  // <— inclui tipos do Vite
+    "baseUrl": ".",
+    "paths": { "@/*": ["app/frontend/*"] }
+  },
+  "include": ["app/frontend", "vite.config.mts"]
+}
