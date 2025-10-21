@@ -4,5 +4,9 @@ class User < ApplicationRecord
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :validatable
 
-  enum :role, { buyer: 0, agent: 1, admin: 2 }, default: :buyer
+  enum :role, { buyer: 0, agent: 1, admin: 2 }
+
+  def display_name
+    name.presence || email
+  end
 end

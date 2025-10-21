@@ -15,5 +15,6 @@ Rails.application.routes.draw do
 
   get "*path", to: "spa#index", constraints: ->(req) { req.format.html? }
 
-  resources :properties, only: [ :index ]
+  resources :properties
+  get "/current_user", to: "users#current"
 end

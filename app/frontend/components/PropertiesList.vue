@@ -1,24 +1,23 @@
 <template>
-  <div class="container py-5">
-    <div v-if="loading" class="text-center py-5">Carregando imóveis...</div>
-    <div v-else-if="error" class="alert alert-danger">Erro ao carregar imóveis: {{ error }}</div>
+  <div class="container py-4">
+    <h1 class="h4 mb-3">Imóveis disponíveis</h1>
+
+    <div v-if="loading" class="text-center">Carregando...</div>
+    <div v-else-if="error" class="alert alert-danger">{{ error }}</div>
     <div v-else>
-      <h1 class="h3 mb-4">Imóveis disponíveis</h1>
       <div v-if="properties.length === 0" class="text-muted">Nenhum imóvel encontrado.</div>
       <div class="row g-3">
-        <div class="col-md-6" v-for="prop in properties" :key="prop.id">
+        <div class="col-md-6" v-for="p in properties" :key="p.id">
           <div class="card h-100">
             <div class="card-body">
-              <h5 class="card-title">{{ prop.title }}</h5>
-              <h6 class="card-subtitle mb-2 text-muted">{{ prop.city }}, {{ prop.state }}</h6>
-              <p class="card-text text-truncate" style="max-height: 3.6em;">{{ prop.description }}</p>
-              <ul class="list-inline small mb-2">
-                <li class="list-inline-item">Quartos: {{ prop.bedrooms ?? 0 }}</li>
-                <li class="list-inline-item">Banheiros: {{ prop.bathrooms ?? 0 }}</li>
-                <li class="list-inline-item">Vagas: {{ prop.parking_spaces ?? 0 }}</li>
-              </ul>
-              <p class="h5 mb-1">{{ formatPrice(prop.price) }}</p>
-              <p class="mb-0 small text-muted">Anunciante: {{ prop.agent_name ?? '—' }}</p>
+              <h5 class="card-title">{{ p.title }}</h5>
+              <h6 class="card-subtitle mb-2 text-muted">{{ p.city }}, {{ p.state }}</h6>
+              <p class="card-text">{{ p.description }}</p>
+              <p class="h6">{{ formatPrice(p.price) }}</p>
+              <p class="small text-muted mb-2">Anunciante: {{ p.agent_name || '—' }}</p>
+              <router-link :to="{ name: 'properties-show', params: { id: p.id } }" class="btn btn-sm btn-outline-primary me-2">Ver</router-link>
+              <router-link v-if="canEdit(p)" :to="{ name: 'properties-edit', params: { id: p.id } }" class="btn btn-sm btn-outline-secondary me-2">Editar</router-link>
+              <button v-if="canDelete(p)" class="btn btn-sm btn-danger" @click="remove(p.id)">Excluir</button>
             </div>
           </div>
         </div>
@@ -33,13 +32,23 @@ import { ref, onMounted } from 'vue'
 const properties = ref([])
 const loading = ref(true)
 const error = ref(null)
+const currentUser = ref(null)
+
+const getCsrf = () => document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+
+const fetchCurrent = async () => {
+  try {
+    const res = await fetch('/current_user')
+    if (res.ok) currentUser.value = await res.json()
+  } catch (e) { /* silent */ }
+}
 
 const fetchProperties = async () => {
   loading.value = true
   error.value = null
   try {
     const res = await fetch('/properties.json')
-    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`)
+    if (!res.ok) throw new Error(await res.text())
     properties.value = await res.json()
   } catch (err) {
     error.value = err.message
@@ -48,11 +57,38 @@ const fetchProperties = async () => {
   }
 }
 
-onMounted(fetchProperties)
+onMounted(async () => {
+  await fetchCurrent()
+  await fetchProperties()
+})
 
-const formatPrice = (value) => {
-  if (value == null) return '—'
-  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(value))
+const formatPrice = (v) => {
+  if (v == null) return '—'
+  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(v))
+}
+
+const canEdit = (p) => {
+  if (!currentUser.value) return false
+  if (currentUser.value.role === 'admin' || currentUser.value.role === 2) return true
+  return currentUser.value.role === 'agent' && (currentUser.value.id === p.agent_id)
+}
+
+const canDelete = canEdit
+
+const remove = async (id) => {
+  if (!confirm('Confirma exclusão do imóvel?')) return
+  try {
+    const res = await fetch(`/properties/${id}.json`, {
+      method: 'DELETE',
+      headers: {
+        'X-CSRF-Token': getCsrf()
+      }
+    })
+    if (!res.ok) throw new Error('Falha ao excluir')
+    properties.value = properties.value.filter(p => p.id !== id)
+  } catch (e) {
+    alert(e.message)
+  }
 }
 </script>
 

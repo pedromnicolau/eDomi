@@ -10,6 +10,6 @@ class Property < ApplicationRecord
   validates :price, :condominium_fee, :iptu, numericality: { greater_than_or_equal_to: 0 }
 
   def agent_name
-    agent&.name
+    agent&.display_name
   end
 end

@@ -1,7 +1,14 @@
 <template>
+  <Navbar />
   <router-view />
+  <Footer />
 </template>
 
 <script setup>
-// nada aqui por enquanto
+import Navbar from './components/Navbar.vue'
+import Footer from './components/Footer.vue'
 </script>
+
+<style>
+/* ...optional global styles... */
+</style>
