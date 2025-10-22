@@ -22,8 +22,29 @@
         <!-- auth -->
         <div class="d-flex align-items-center">
           <template v-if="user">
-            <span class="me-3 small text-white">Olá, {{ user.name || user.email }}</span>
-            <button class="btn btn-outline-light" @click="logout">Sair</button>
+            <div class="user-dropdown position-relative" ref="userDropdownRef">
+              <button
+                class="btn btn-outline-light d-flex align-items-center"
+                @click="toggleDropdown"
+                :aria-expanded="dropdownOpen"
+                aria-haspopup="true"
+                type="button"
+              >
+                <!-- simple user icon -->
+                <svg class="me-2 user-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <path d="M12 12c2.761 0 5-2.239 5-5s-2.239-5-5-5-5 2.239-5 5 2.239 5 5 5z" fill="#fff"/>
+                  <path d="M4 20c0-4.418 3.582-8 8-8s8 3.582 8 8" stroke="#fff" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span class="small text-white d-none d-md-inline">{{ user.name || user.email }}</span>
+              </button>
+
+              <div v-if="dropdownOpen" class="dropdown-menu-custom shadow-sm">
+                <a class="dropdown-item" href="/users/edit">Editar perfil</a>
+                <router-link class="dropdown-item" to="/users/password/change">Alterar senha</router-link>
+                <div class="dropdown-divider"></div>
+                <button class="dropdown-item text-danger" @click="logout" type="button">Sair</button>
+              </div>
+            </div>
           </template>
           <template v-else>
             <router-link class="btn btn-outline-light me-2" to="/users/sign_in">Entrar</router-link>
@@ -36,7 +57,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, computed } from 'vue'
+import { ref, onMounted, watch, computed, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -45,15 +66,19 @@ const canCreate = ref(false)
 
 const notifications = ref([])
 const loadingNotifications = ref(false)
+
+/* dropdown state and ref para click-outside */
 const dropdownOpen = ref(false)
+const userDropdownRef = ref(null)
 
 const getCsrf = () => document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
 
 const fetchCurrent = async () => {
   try {
-    const res = await fetch('/current_user')
+    const res = await fetch('/current_user', { credentials: 'same-origin' })
     if (res.ok) {
-      user.value = await res.json()
+      const data = await res.json()
+      user.value = data
       canCreate.value = user.value && (user.value.role === 'agent' || user.value.role === 'admin')
     } else {
       user.value = null
@@ -89,13 +114,25 @@ const fetchNotifications = async () => {
 
 const unreadCount = computed(() => notifications.value.filter(n => !n.read).length)
 
-const toggleDropdown = async () => {
+const toggleDropdown = () => {
   dropdownOpen.value = !dropdownOpen.value
-  if (dropdownOpen.value) {
-    await fetchNotifications()
-    // opcional: marcar como lidas via endpoint se implementado
+}
+
+const onDocumentClick = (e) => {
+  if (dropdownOpen.value && userDropdownRef.value && !userDropdownRef.value.contains(e.target)) {
+    dropdownOpen.value = false
   }
 }
+
+onMounted(async () => {
+  document.addEventListener('click', onDocumentClick)
+  await fetchCurrent()
+  if (user.value) await fetchNotifications()
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', onDocumentClick)
+})
 
 const logout = async () => {
   try {
@@ -123,12 +160,6 @@ const formatDate = (iso) => {
   }
 }
 
-onMounted(async () => {
-  await fetchCurrent()
-  if (user.value) await fetchNotifications()
-})
-
-// quando o usuário muda (ex.: faz login via SPA), buscar notificações
 watch(user, async (v) => {
   if (v) await fetchNotifications()
 })
@@ -197,8 +228,50 @@ watch(user, async (v) => {
 .btn-outline-light { color: #ffffff; border-color: rgba(255,255,255,0.2); }
 .btn-light { background: #ffffff; color: #1A2E66; }
 
+/* user dropdown */
+.user-icon { display: inline-block; vertical-align: middle; }
+.user-dropdown { z-index: 1050; }
+
+/* custom dropdown styling */
+.dropdown-menu-custom {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  min-width: 200px;
+  background: #ffffff;
+  border-radius: 0.35rem;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+  padding: 0.25rem 0;
+  overflow: hidden;
+}
+
+/* items */
+.dropdown-item {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 1rem;
+  color: #333;
+  text-decoration: none;
+  background: transparent;
+  border: none;
+  text-align: left;
+}
+
+.dropdown-item:hover {
+  background: #f8f9fa;
+  color: #000;
+}
+
+.dropdown-divider {
+  height: 1px;
+  margin: 0.25rem 0;
+  background: #e9ecef;
+}
+
+/* adaptações pequenas */
 @media (max-width: 576px) {
   .logo-text { font-size: 0.95rem; }
   .logo-mark { width: 28px; height: 28px; }
+  .user-dropdown .small { display: none !important; }
 }
 </style>

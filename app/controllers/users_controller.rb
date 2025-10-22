@@ -1,12 +1,16 @@
 class UsersController < ApplicationController
-  before_action :authenticate_user!
+  skip_before_action :authenticate_user!, only: [ :current ], raise: false
 
   def current
-    render json: {
-      id: current_user.id,
-      email: current_user.email,
-      name: current_user.name,
-      role: current_user.role # enum retorna string, ex: "agent", "admin", "buyer"
-    }
+    if current_user
+      render json: {
+        id: current_user.id,
+        email: current_user.email,
+        name: current_user.name,
+        role: current_user.role
+      }
+    else
+      render json: nil, status: :ok
+    end
   end
 end

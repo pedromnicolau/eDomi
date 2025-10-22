@@ -5,8 +5,7 @@ class Users::SessionsController < Devise::SessionsController
     super
   end
 
-  # após login, usa o path salvo (inclui query) se presente, caso contrário fallback padrão do Devise
   def after_sign_in_path_for(resource)
-    session.delete(:user_return_to) || super
+    root_path
   end
 end
