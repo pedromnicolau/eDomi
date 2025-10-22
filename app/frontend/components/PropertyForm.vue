@@ -6,7 +6,7 @@
     <div v-else>
       <div v-if="error" class="alert alert-danger">{{ error }}</div>
 
-      <form @submit.prevent="submit">
+      <form @submit.prevent="submit" enctype="multipart/form-data">
         <div class="mb-3">
           <label class="form-label">Título</label>
           <input class="form-control" v-model="form.title" required />
@@ -114,6 +114,33 @@
           </select>
         </div>
 
+        <!-- Image uploads -->
+        <div class="mb-3">
+          <label class="form-label">Fotos do imóvel (opcional)</label>
+          <input type="file" multiple class="form-control" @change="onFilesChange" />
+          <!-- previews para novos arquivos -->
+          <div v-if="previewUrls.length" class="mt-2 d-flex gap-2 flex-wrap">
+            <div v-for="(u,i) in previewUrls" :key="'new-'+i" class="position-relative">
+              <img :src="u" style="width:96px;height:72px;object-fit:cover;border-radius:6px;border:1px solid #ddd" />
+              <button type="button" class="btn btn-sm btn-danger position-absolute" style="right:-6px;bottom:-6px;padding:0.15rem 0.35rem;" @click="removeNewFile(i)">&times;</button>
+            </div>
+          </div>
+
+          <!-- fotos já atreladas ao imóvel (quando em edição) -->
+          <div v-if="existingPhotos.length" class="mt-3">
+            <div class="small mb-1">Fotos já anexadas</div>
+            <div class="d-flex gap-2 flex-wrap">
+              <div v-for="(p, idx) in existingPhotos" :key="p.blob_id" class="position-relative">
+                <img :src="p.url" :alt="p.filename" style="width:96px;height:72px;object-fit:cover;border-radius:6px;border:1px solid #ddd" />
+                <button type="button" class="btn btn-sm btn-danger position-absolute" style="right:-6px;bottom:-6px;padding:0.15rem 0.35rem;" @click="markRemoveExisting(p.blob_id)">
+                  &times;
+                </button>
+              </div>
+            </div>
+            <div v-if="removedBlobIds.length" class="text-muted small mt-1">Marcou {{ removedBlobIds.length }} foto(s) para remoção</div>
+          </div>
+        </div>
+
         <button class="btn btn-primary" type="submit">{{ isEdit ? 'Salvar' : 'Criar' }}</button>
         <router-link to="/" class="btn btn-secondary ms-2">Cancelar</router-link>
       </form>
@@ -154,6 +181,13 @@ const form = ref({
 const loading = ref(false)
 const error = ref(null)
 
+const files = ref([])
+const previewUrls = ref([])
+
+// novos estados: fotos existentes e removidas
+const existingPhotos = ref([]) // objetos { blob_id, filename, url }
+const removedBlobIds = ref([])
+
 const getCsrf = () => document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
 
 const load = async () => {
@@ -183,6 +217,8 @@ const load = async () => {
       status: data.status || 'available',
       description: data.description
     })
+    // popular fotos existentes (photos_data exposto pelo backend)
+    existingPhotos.value = data.photos_data || []
   } catch (e) {
     error.value = e.message
   } finally {
@@ -191,6 +227,33 @@ const load = async () => {
 }
 
 onMounted(load)
+
+const onFilesChange = (e) => {
+  files.value = Array.from(e.target.files || [])
+  // generate previews
+  previewUrls.value = files.value.map(f => URL.createObjectURL(f))
+}
+
+// remove um novo arquivo selecionado antes do envio
+const removeNewFile = (index) => {
+  // revoke objectURL
+  URL.revokeObjectURL(previewUrls.value[index])
+  files.value.splice(index, 1)
+  previewUrls.value.splice(index, 1)
+}
+
+// marcar uma foto existente para remoção (toggle)
+const markRemoveExisting = (blobId) => {
+  const id = Number(blobId)
+  if (removedBlobIds.value.includes(id)) {
+    removedBlobIds.value = removedBlobIds.value.filter(x => x !== id)
+    // opcional: re-add visual placeholder? Recarregar existingPhotos from property would be heavier; keep simple
+  } else {
+    removedBlobIds.value.push(id)
+    // remover visualmente da lista
+    existingPhotos.value = existingPhotos.value.filter(p => Number(p.blob_id) !== id)
+  }
+}
 
 const submit = async () => {
   error.value = null
@@ -204,17 +267,42 @@ const submit = async () => {
   try {
     const method = isEdit ? 'PATCH' : 'POST'
     const url = isEdit ? `/properties/${id}.json` : '/properties.json'
-    const res = await fetch(url, {
-      method,
-      headers: {
+
+    // use FormData when files present or when removing existing photos
+    let body, headers
+    const hasFiles = files.value.length > 0
+    const hasRemovals = removedBlobIds.value.length > 0
+
+    if (hasFiles || hasRemovals) {
+      body = new FormData()
+      // append property fields as nested params: property[title], etc.
+      Object.keys(form.value).forEach(k => {
+        const v = form.value[k]
+        if (v !== undefined && v !== null) body.append(`property[${k}]`, v)
+      })
+      // append files
+      files.value.forEach(f => body.append('property[uploaded_photos][]', f))
+      // append removals
+      removedBlobIds.value.forEach(id => body.append('property[remove_photo_blob_ids][]', id))
+      headers = { 'X-CSRF-Token': getCsrf() }
+    } else {
+      body = JSON.stringify({ property: form.value })
+      headers = {
         'Content-Type': 'application/json',
         'X-CSRF-Token': getCsrf()
-      },
-      body: JSON.stringify({ property: form.value })
+      }
+    }
+
+    const res = await fetch(url, {
+      method,
+      headers,
+      body,
+      credentials: 'same-origin'
     })
+
     if (res.status === 422) {
-      const body = await res.json()
-      throw new Error((body.errors || body.error || ['Erro']).join(', '))
+      const bodyErr = await res.json().catch(() => null)
+      throw new Error((bodyErr && (bodyErr.errors || bodyErr.error)) || 'Erro')
     }
     if (!res.ok) throw new Error('Erro ao salvar')
     router.push({ name: 'home' })

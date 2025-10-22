@@ -6,6 +6,8 @@ class User < ApplicationRecord
 
   enum :role, { buyer: 0, agent: 1, admin: 2 }
 
+  has_many :notifications, dependent: :destroy
+
   def display_name
     name.presence || email
   end
