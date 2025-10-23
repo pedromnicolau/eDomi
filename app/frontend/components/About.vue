@@ -189,7 +189,7 @@ const agents = [
 .card-brief:hover { transform: translateY(-6px); box-shadow: var(--card-shadow-hover); }
 
 /* FEATURES */
-.features { margin-top: 1.5rem; margin-bottom: 1.5rem; }
+.features { margin-top: 4rem; margin-bottom: 1.5rem; }
 .grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem; }
 .feature { background: #fff; border-radius: .6rem; padding: 1.25rem; text-align: center; box-shadow: var(--card-shadow); }
 .feature .icon { color: var(--primary); background: linear-gradient(180deg,#fff 0%, #f8fafc 100%); border-radius: 12px; padding: 12px; font-size: 20px; margin-bottom: .5rem; color: var(--primary); }
@@ -197,7 +197,7 @@ const agents = [
 .feature p { color: var(--muted); margin: 0; }
 
 /* explanatory paragraph styling */
-.about-explain { margin: 0.75rem auto 0 auto; color: #0b2546; background: #fff; padding: 3rem 3.25rem; border-radius: .5rem; box-shadow: var(--card-shadow); }
+.about-explain { color: #0b2546; background: #fff; padding: 3rem 3.25rem; border-radius: .5rem; box-shadow: var(--card-shadow); }
 .about-explain p { margin: 0; color: var(--muted); }
 
 /* STATS STRIP */

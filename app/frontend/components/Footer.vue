@@ -4,7 +4,7 @@
       <div class="row align-items-center">
         <div class="col-md-4 mb-2 mb-md-0">
           <div class="logo d-flex align-items-center gap-2">
-            <span class="logo-mark" aria-hidden="true"></span>
+            <img :src="logoSrc" class="logo-mark" alt="eDomi" />
             <div>
               <div class="fw-bold">eDomi</div>
               <div class="small text-muted">Imobiliária • Tecnologia • Confiança</div>
@@ -28,6 +28,10 @@
 </template>
 
 <script setup>
+/* filepath: /home/pedro/fatec/eDomi/app/frontend/components/Footer.vue */
+
+/* novo: usar binding dinâmico para o logo */
+const logoSrc = '/icon.png'
 </script>
 
 <style scoped>

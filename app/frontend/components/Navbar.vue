@@ -5,8 +5,7 @@
       <!-- marca (esquerda) -->
       <div class="me-auto d-flex align-items-center">
         <router-link to="/" class="navbar-brand d-flex align-items-center">
-          <span class="logo-mark" aria-hidden="true"></span>
-          <span class="logo-text">eDomi</span>
+          <img :src="logoSrc" class="logo-mark" alt="eDomi" />
         </router-link>
       </div>
 
@@ -99,6 +98,9 @@ import { useRouter } from 'vue-router'
 const router = useRouter()
 const user = ref(null)
 const canCreate = ref(false)
+
+/* novo: src dinâmico para evitar resolução estática pelo Vite */
+const logoSrc = '/icon.png'
 
 const notifications = ref([])
 const loadingNotifications = ref(false)
@@ -268,12 +270,12 @@ watch(user, async (v) => {
   width: 32px;
   height: 32px;
   border-radius: 8px;
-  display: inline-flex;;
-  align-items: center;
-  background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-green) 100%);
-  box-shadow: 0 4px 10px rgba(26,46,102,0.12);
+  display: inline-block;
+  object-fit: contain;
   flex-shrink: 0;
   margin-right: 0.5rem;
+  box-shadow: 0 4px 10px rgba(26,46,102,0.12);
+  background: transparent;
 }
 
 .logo-text {
