@@ -57,7 +57,7 @@ group :test do
   gem "capybara"
   gem "selenium-webdriver"
   gem "factory_bot_rails"
-  gem "rspec-rails", "~> 6.0"
+  gem "rspec-rails", "~> 8.0"
 end
 
 gem "image_processing", "~> 1.14"
