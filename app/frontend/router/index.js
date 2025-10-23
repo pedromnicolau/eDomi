@@ -10,6 +10,7 @@ import ForgotPassword from '@/components/users/ForgotPassword.vue'
 import ResetPassword from '@/components/users/ResetPassword.vue'
 import EditProfile from '@/components/users/EditProfile.vue'
 import ChangePassword from '@/components/users/ChangePassword.vue'
+import CalendarView from '@/components/CalendarView.vue'
 
 const routes = [
   { path: '/', name: 'home', component: PropertiesList },
@@ -24,9 +25,13 @@ const routes = [
   { path: '/users/password/edit', name: 'password-edit', component: ResetPassword },
   { path: '/users/edit', name: 'user-edit', component: EditProfile },
   { path: '/users/password/change', name: 'user-password-change', component: ChangePassword },
+  { path: '/calendar', name: 'calendar', component: CalendarView }
 ]
 
-export const router = createRouter({
+const router = createRouter({
   history: createWebHistory(),
   routes,
 })
+
+export { router }
+export default router

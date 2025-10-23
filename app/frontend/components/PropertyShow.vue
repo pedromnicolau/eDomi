@@ -344,7 +344,6 @@ const canSchedule = computed(() => true)
   justify-content: center;
   font-size: 1.5rem;
   cursor: pointer;
-  z-index: 5;
 }
 .nav-arrow.left { left: 12px; }
 .nav-arrow.right { right: 12px; }

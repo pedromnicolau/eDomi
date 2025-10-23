@@ -12,13 +12,49 @@
 
       <!-- menus centralizados -->
       <div class="mx-auto d-none d-lg-flex align-items-center">
-        <router-link to="/" class="btn btn-new mx-2">Início</router-link>
+        <router-link to="/" class="btn btn-new mx-2">Imóveis</router-link>
         <router-link to="/about" class="btn btn-new mx-2">Sobre</router-link>
         <router-link to="/contact" class="btn btn-new mx-2">Contato</router-link>
       </div>
 
       <!-- ações (direita): notificações + auth -->
       <div class="ms-auto d-flex align-items-center">
+        <!-- notificações -->
+        <div class="me-3 position-relative" ref="notificationsRef">
+          <button
+            class="btn btn-outline-light d-flex align-items-center position-relative"
+            @click="toggleNotifications"
+            :aria-expanded="notificationsOpen"
+            aria-haspopup="true"
+            type="button"
+          >
+            <!-- Font Awesome bell (carregado dinamicamente) -->
+            <i class="fa-solid fa-bell notif-icon" aria-hidden="true"></i>
+            <span v-if="unreadCount > 0" class="badge-unread">{{ unreadCount }}</span>
+          </button>
+
+          <div v-if="notificationsOpen" class="dropdown-menu-notifications shadow-sm">
+            <div class="px-2 py-2" v-if="loadingNotifications">Carregando...</div>
+            <div v-else>
+              <div v-if="notifications.length === 0" class="px-3 py-2 small text-muted">Sem notificações</div>
+              <button
+                v-for="n in notifications"
+                :key="n.id"
+                class="dropdown-item btn-notif-item"
+                type="button"
+                :class="{ 'fw-bold': !n.read }"
+                @click.prevent="openNotification(n)"
+              >
+                <div class="small text-secondary">{{ formatDate(n.created_at || n.createdAt || n.created) }}</div>
+                <div>{{ n.title }}</div>
+                <div class="small text-muted">{{ n.body }}</div>
+              </button>
+              <div class="dropdown-divider"></div>
+              <router-link class="dropdown-item text-center small" to="/notifications">Ver todas as notificações</router-link>
+            </div>
+          </div>
+        </div>
+
         <!-- auth -->
         <div class="d-flex align-items-center">
           <template v-if="user">
@@ -71,6 +107,10 @@ const loadingNotifications = ref(false)
 const dropdownOpen = ref(false)
 const userDropdownRef = ref(null)
 
+/* notificações dropdown */
+const notificationsOpen = ref(false)
+const notificationsRef = ref(null)
+
 const getCsrf = () => document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
 
 const fetchCurrent = async () => {
@@ -118,9 +158,16 @@ const toggleDropdown = () => {
   dropdownOpen.value = !dropdownOpen.value
 }
 
+const toggleNotifications = () => {
+  notificationsOpen.value = !notificationsOpen.value
+}
+
 const onDocumentClick = (e) => {
   if (dropdownOpen.value && userDropdownRef.value && !userDropdownRef.value.contains(e.target)) {
     dropdownOpen.value = false
+  }
+  if (notificationsOpen.value && notificationsRef.value && !notificationsRef.value.contains(e.target)) {
+    notificationsOpen.value = false
   }
 }
 
@@ -154,9 +201,45 @@ const logout = async () => {
 
 const formatDate = (iso) => {
   try {
-    return new Date(iso).toLocaleString()
+    const d = new Date(iso)
+    if (isNaN(d)) return iso
+    const dd = String(d.getDate()).padStart(2, '0')
+    const mm = String(d.getMonth() + 1).padStart(2, '0')
+    const yy = String(d.getFullYear()).slice(-2)
+    return `${dd}/${mm}/${yy}`
   } catch (e) {
     return iso
+  }
+}
+
+const openNotification = (n) => {
+  // tenta obter uma data associada à notificação:
+  // prioriza campos comuns, cai back para created_at
+  const candidate = n.scheduled_at || n.date || n.created_at || n.createdAt || n.created || ''
+  let dateParam = ''
+  if (candidate) {
+    // já em formato ISO? pegamos apenas a parte YYYY-MM-DD
+    dateParam = String(candidate).split('T')[0]
+    // se veio em outro formato como "2025-02-11 13:00:00", normalizamos
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dateParam)) {
+      const parsed = new Date(candidate)
+      if (!isNaN(parsed)) {
+        const y = parsed.getFullYear()
+        const m = String(parsed.getMonth() + 1).padStart(2, '0')
+        const d = String(parsed.getDate()).padStart(2, '0')
+        dateParam = `${y}-${m}-${d}`
+      } else {
+        dateParam = ''
+      }
+    }
+  }
+
+  // fechar dropdown e navegar para o calendário; a rota "calendar" deve ser definida no router da SPA
+  notificationsOpen.value = false
+  if (dateParam) {
+    router.push({ name: 'calendar', query: { date: dateParam } }).catch(() => {})
+  } else {
+    router.push({ name: 'calendar' }).catch(() => {})
   }
 }
 
@@ -245,6 +328,28 @@ watch(user, async (v) => {
   overflow: hidden;
 }
 
+/* notifications dropdown: garantir que fique acima de outros componentes */
+.dropdown-menu-notifications {
+  z-index: 3000; /* valor suficientemente alto para estar acima de cards/modals */
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  width: 320px;
+  max-height: 360px;
+  background: #ffffff;
+  border-radius: 0.35rem;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+  padding: 0.25rem 0;
+  overflow: auto;
+}
+
+/* estilo do ícone do sino (usa Font Awesome) */
+.notif-icon {
+  color: #fff;
+  font-size: 18px;
+  line-height: 1;
+}
+
 /* items */
 .dropdown-item {
   display: block;
@@ -257,6 +362,8 @@ watch(user, async (v) => {
   text-align: left;
 }
 
+.btn-notif-item { text-align: left; width: 100%; background: transparent; border: none; padding: 0.5rem 1rem; }
+
 .dropdown-item:hover {
   background: #f8f9fa;
   color: #000;
@@ -266,6 +373,19 @@ watch(user, async (v) => {
   height: 1px;
   margin: 0.25rem 0;
   background: #e9ecef;
+}
+
+/* unread badge */
+.badge-unread {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: #ff4d4f;
+  color: #fff;
+  font-size: 0.65rem;
+  padding: 2px 6px;
+  border-radius: 999px;
+  line-height: 1;
 }
 
 /* adaptações pequenas */
