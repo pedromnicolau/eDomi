@@ -70,7 +70,7 @@
                   <path d="M12 12c2.761 0 5-2.239 5-5s-2.239-5-5-5-5 2.239-5 5 2.239 5 5 5z" fill="#fff"/>
                   <path d="M4 20c0-4.418 3.582-8 8-8s8 3.582 8 8" stroke="#fff" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
-                <span class="small text-white d-none d-md-inline">{{ user.name || user.email }}</span>
+                <span class="small text-white d-none d-md-inline">{{ user && (user.name || user.email) }}</span>
               </button>
 
               <div v-if="dropdownOpen" class="dropdown-menu-custom shadow-sm">
@@ -132,6 +132,7 @@ const fetchCurrent = async () => {
   }
 }
 
+// no fetchNotifications
 const fetchNotifications = async () => {
   if (!user.value) {
     notifications.value = []
@@ -142,7 +143,20 @@ const fetchNotifications = async () => {
     const res = await fetch('/notifications.json', { credentials: 'same-origin' })
     if (res.ok) {
       const data = await res.json()
-      notifications.value = data || []
+      // garante que read seja booleano
+      const newNotifs = (data || []).map(n => ({
+        ...n,
+        read: n.read === true || n.read === "true" || n.read === 1 || n.read === "1"
+      }))
+
+      // mescla mantendo o read local se já existia
+      const existingMap = new Map(notifications.value.map(n => [n.id, n]))
+      notifications.value = newNotifs.map(n => {
+        if (existingMap.has(n.id)) {
+          return { ...n, read: existingMap.get(n.id).read }
+        }
+        return n
+      })
     } else {
       notifications.value = []
     }
@@ -154,7 +168,11 @@ const fetchNotifications = async () => {
   }
 }
 
-const unreadCount = computed(() => notifications.value.filter(n => !n.read).length)
+// badge
+const unreadCount = computed(() =>
+  notifications.value.filter(n => n.read === false).length
+)
+
 
 const toggleDropdown = () => {
   dropdownOpen.value = !dropdownOpen.value
@@ -174,9 +192,14 @@ const onDocumentClick = (e) => {
 }
 
 onMounted(async () => {
-  document.addEventListener('click', onDocumentClick)
-  await fetchCurrent()
-  if (user.value) await fetchNotifications()
+  try {
+    const res = await fetch('/current_user', { credentials: 'same-origin' })
+    if (res.ok) {
+      user.value = await res.json()
+    }
+  } catch (e) {
+    user.value = null
+  }
 })
 
 onBeforeUnmount(() => {
@@ -214,15 +237,29 @@ const formatDate = (iso) => {
   }
 }
 
-const openNotification = (n) => {
-  // tenta obter uma data associada à notificação:
-  // prioriza campos comuns, cai back para created_at
+const openNotification = async (n) => {
+  try {
+    await fetch(`/notifications/${n.id}/mark_as_read`, {
+      method: 'PATCH',
+      headers: {
+        'X-CSRF-Token': getCsrf(),
+        'Content-Type': 'application/json',
+      },
+      credentials: 'same-origin',
+    })
+  } catch (e) {
+    console.warn('Falha ao marcar notificação como lida', e)
+  }
+
+  // marca localmente como lida
+  const notif = notifications.value.find(x => x.id === n.id)
+  if (notif) notif.read = true
+
+  // navegação para a data relacionada
   const candidate = n.scheduled_at || n.date || n.created_at || n.createdAt || n.created || ''
   let dateParam = ''
   if (candidate) {
-    // já em formato ISO? pegamos apenas a parte YYYY-MM-DD
     dateParam = String(candidate).split('T')[0]
-    // se veio em outro formato como "2025-02-11 13:00:00", normalizamos
     if (!/^\d{4}-\d{2}-\d{2}$/.test(dateParam)) {
       const parsed = new Date(candidate)
       if (!isNaN(parsed)) {
@@ -230,14 +267,10 @@ const openNotification = (n) => {
         const m = String(parsed.getMonth() + 1).padStart(2, '0')
         const d = String(parsed.getDate()).padStart(2, '0')
         dateParam = `${y}-${m}-${d}`
-      } else {
-        dateParam = ''
       }
     }
   }
 
-  // fechar dropdown e navegar para o calendário; a rota "calendar" deve ser definida no router da SPA
-  notificationsOpen.value = false
   if (dateParam) {
     router.push({ name: 'calendar', query: { date: dateParam } }).catch(() => {})
   } else {
@@ -343,6 +376,15 @@ watch(user, async (v) => {
   box-shadow: 0 6px 18px rgba(0,0,0,0.12);
   padding: 0.25rem 0;
   overflow: auto;
+}
+
+/* remove mudança para branco nos botões de usuário e notificações */
+.btn-outline-light:hover,
+.btn-outline-light:focus,
+.btn-outline-light:active {
+  color: inherit;        /* mantém a cor original (#fff do navbar) */
+  background-color: rgba(255,255,255,0.1); /* leve efeito visual de hover */
+  border-color: rgba(255,255,255,0.2);    /* mantém borda */
 }
 
 /* estilo do ícone do sino (usa Font Awesome) */

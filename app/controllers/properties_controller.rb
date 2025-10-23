@@ -5,13 +5,16 @@ class PropertiesController < ApplicationController
   before_action :authorize_modify!, only: [ :update, :destroy ]
 
   def index
-    # inclui attachments+blobs para evitar N+1 ao construir URLs das fotos
-    @properties = Property.includes(:agent, photos_attachments: :blob).order(created_at: :desc)
+    @properties = Property
+                    .where(status: :available)
+                    .includes(:agent, photos_attachments: :blob)
+                    .order(created_at: :desc)
     render json: @properties.as_json(
       only: [
         :id, :title, :description, :price, :city, :state,
         :bedrooms, :bathrooms, :parking_spaces, :furnished,
-        :condominium_fee, :iptu, :address, :property_type, :status, :area, :year_built, :agent_id
+        :condominium_fee, :iptu, :address, :property_type,
+        :status, :area, :year_built, :agent_id
       ],
       methods: [ :agent_name, :photos_urls, :photos_data ]
     )

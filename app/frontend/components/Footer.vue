@@ -7,14 +7,14 @@
             <img :src="logoSrc" class="logo-mark" alt="eDomi" />
             <div>
               <div class="fw-bold">eDomi</div>
-              <div class="small text-muted">Imobiliária • Tecnologia • Confiança</div>
+              <div class="small">Imobiliária • Tecnologia • Confiança</div>
             </div>
           </div>
         </div>
 
         <div class="col-md-4 text-center mb-2 mb-md-0">
           <div class="small">© <strong>eDomi</strong> — Todos os direitos reservados</div>
-          <div class="small text-muted">Rua Exemplo, 123 — São Paulo, SP</div>
+          <p>CNPJ: 62.453.975/0001-22</p>
         </div>
 
         <div class="col-md-4 text-md-end">

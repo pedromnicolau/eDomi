@@ -30,33 +30,73 @@
       >
         <div class="day-number">{{ cell.date ? cell.day : '' }}</div>
 
-        <!-- red rectangle inside the day showing brief visits -->
+        <!-- mostra quantidade e links rápidos -->
         <div v-if="cell && cell.visits && cell.visits.length" class="visits-rect">
-          <div v-for="(v,i) in cell.visits.slice(0,3)" :key="i" class="visit-line">
-            <span class="visit-time">{{ formatTime(v.scheduled_at) }}</span>
-            <span class="visit-prop"> — {{ v.property_title || ('Imóvel #' + v.property_id) }}</span>
+          <div class="small fw-semibold text-danger mb-1">
+            {{ cell.visits.length }} visita{{ cell.visits.length > 1 ? 's' : '' }}
           </div>
-          <div v-if="cell.visits.length > 3" class="more small">+{{ cell.visits.length - 3 }}...</div>
+
+          <div v-for="(v,i) in cell.visits.slice(0,2)" :key="i" class="visit-line">
+            <router-link
+              v-if="v.property_id"
+              :to="`/properties/${v.property_id}`"
+              class="text-decoration-none text-dark"
+            >
+              <span class="visit-time">{{ formatTime(v.scheduled_at) }}</span>
+              <span class="visit-prop">— {{ v.property_title || ('Imóvel #' + v.property_id) }}</span>
+            </router-link>
+
+            <span v-else class="text-muted small">
+              {{ formatTime(v.scheduled_at) }} — {{ v.property_title || 'Imóvel desconhecido' }}
+            </span>
+          </div>
+
+          <div v-if="cell.visits.length > 2" class="more small">+{{ cell.visits.length - 2 }} mais...</div>
         </div>
       </div>
     </div>
 
-    <div v-if="selectedDate" class="mt-3">
-      <h5>Visitas em {{ selectedDate }}</h5>
+    <div v-if="selectedDate" class="mt-4">
+      <h5 class="mb-3">
+        Visitas em {{ selectedDate }}
+        <span class="badge bg-primary ms-2">{{ visitsForSelectedDate.length }}</span>
+      </h5>
+
       <ul class="list-group">
-        <li v-for="v in visitsForSelectedDate" :key="v.id" class="list-group-item">
-          <div class="d-flex justify-content-between">
-            <div>
-              <div class="fw-semibold">{{ v.property_title || ('Imóvel #' + v.property_id) }}</div>
-              <div class="small text-muted">{{ formatTime(v.scheduled_at) }} — {{ v.notes || '' }}</div>
+        <li
+          v-for="v in visitsForSelectedDate"
+          :key="v.id"
+          class="list-group-item d-flex justify-content-between align-items-start"
+        >
+          <div>
+            <router-link
+              v-if="v.property_id"
+              :to="`/properties/${v.property_id}`"
+              class="fw-semibold text-decoration-none text-primary"
+            >
+              {{ v.property_title || ('Imóvel #' + v.property_id) }}
+            </router-link>
+
+            <div v-else class="fw-semibold text-muted">
+              {{ v.property_title || ('Imóvel desconhecido') }}
             </div>
-            <div class="small text-end">
-              <div>{{ v.buyer_name || v.buyer_email || '' }}</div>
-              <div class="text-muted">{{ v.agent_name || v.agent_email || '' }}</div>
+
+            <div class="small text-muted">
+              {{ formatTime(v.scheduled_at) }} — {{ v.notes || '' }}
             </div>
           </div>
+          <div class="small text-end text-muted">
+            <div>{{ v.buyer_name || v.buyer_email || '' }}</div>
+            <div>{{ v.agent_name || v.agent_email || '' }}</div>
+          </div>
         </li>
-        <li v-if="visitsForSelectedDate.length === 0" class="list-group-item small text-muted">Nenhuma visita neste dia.</li>
+
+        <li
+          v-if="visitsForSelectedDate.length === 0"
+          class="list-group-item small text-muted text-center"
+        >
+          Nenhuma visita neste dia.
+        </li>
       </ul>
     </div>
   </div>
@@ -85,21 +125,14 @@ const toKey = (d) => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate(
 const parseToDate = (iso) => {
   if (!iso) return null
   const s = String(iso).trim()
-  // se começar com YYYY-MM-DD já usamos isso
   const m = s.match(/^(\d{4}-\d{2}-\d{2})/)
   if (m) {
-    // cria uma Date local a partir da string para garantir consistência com o calendário
     const parts = m[1].split('-').map(Number)
     return new Date(parts[0], parts[1] - 1, parts[2])
   }
-
-  // tenta normalizar formatos "YYYY-MM-DD HH:MM:SS" ou "YYYY-MM-DDTHH:MM:SSZ" etc.
-  // substituir apenas o primeiro espaço entre data e hora por 'T' para parsing robusto
   const normalized = s.replace(/^(\d{4}-\d{2}-\d{2})\s+/, '$1T')
   const d = new Date(normalized)
   if (!isNaN(d)) return d
-
-  // fallback: tentar Date direto
   const d2 = new Date(s)
   return isNaN(d2) ? null : d2
 }
@@ -129,7 +162,6 @@ const cells = computed(() => {
     cellsArr.push({
       date: key,
       day: d,
-      isToday: key === toKey(new Date()),
       visits: visitsByDate.value[key] || []
     })
   }
@@ -141,7 +173,6 @@ const cells = computed(() => {
 const visitsForSelectedDate = computed(() => {
   if (!selectedDate.value) return []
   const arr = visitsByDate.value[selectedDate.value] || []
-  // já garantimos ordenação em fetchVisits, mas reforçamos aqui
   return arr.slice().sort((a, b) => {
     const ta = parseToDate(a.scheduled_at) || new Date(0)
     const tb = parseToDate(b.scheduled_at) || new Date(0)
@@ -152,19 +183,38 @@ const visitsForSelectedDate = computed(() => {
 const fetchVisits = async () => {
   try {
     const res = await fetch('/visits.json', { credentials: 'same-origin' })
-    if (!res.ok) return
+    if (!res.ok) {
+      console.warn('fetchVisits: /visits.json respondeu com status', res.status)
+      visits.value = []
+      visitsByDate.value = {}
+      return
+    }
     const data = await res.json()
     visits.value = Array.isArray(data) ? data : []
+    // debug: mostrar quantas visitas vieram
+    console.debug('fetchVisits -> visits count:', visits.value.length)
+
     const map = {}
     for (const v of visits.value) {
-      // usar o scheduled_at preferencialmente; se ausente, fallback para created_at
-      const raw = v.scheduled_at || v.scheduledAt || v.scheduled || v.created_at
+      const raw = v.scheduled_at || v.scheduledAt || v.scheduled || v.created_at || v.createdAt
       const k = toKeyFromISO(raw)
-      if (!k) continue
-      if (!map[k]) map[k] = []
-      map[k].push(v)
+      if (!k) {
+        // se não conseguiu parse, tente com created_at fallback
+        const fallbackKey = toKeyFromISO(v.created_at || v.createdAt)
+        if (!fallbackKey) {
+          console.warn('visit sem data válida:', v)
+          continue
+        } else {
+          if (!map[fallbackKey]) map[fallbackKey] = []
+          map[fallbackKey].push(v)
+        }
+      } else {
+        if (!map[k]) map[k] = []
+        map[k].push(v)
+      }
     }
-    // ordenar as visitas de cada dia por horário (scheduled_at) usando parseToDate
+
+    // ordenar cada dia por horário
     for (const k of Object.keys(map)) {
       map[k].sort((a, b) => {
         const ta = parseToDate(a.scheduled_at) || new Date(0)
@@ -172,11 +222,16 @@ const fetchVisits = async () => {
         return ta - tb
       })
     }
+
     visitsByDate.value = map
 
-    // se já existe uma selectedDate (por query) e não há visitas, forçar refresh da célula
-    // (não necessário alterar selectedDate, mas garante reatividade)
+    // se a rota trouxe query.date, manter seleção visível
+    const qdate = route.query.date
+    if (qdate && typeof qdate === 'string' && toKeyFromISO(qdate)) {
+      selectedDate.value = qdate.split('T')[0].split(' ')[0]
+    }
   } catch (e) {
+    console.error('fetchVisits erro', e)
     visits.value = []
     visitsByDate.value = {}
   }
@@ -189,6 +244,7 @@ const openDay = (dateKey) => {
 const formatTime = (iso) => {
   try {
     const d = new Date(iso)
+    if (isNaN(d)) return iso || ''
     return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
   } catch (e) {
     return iso
@@ -209,14 +265,18 @@ const today = () => {
 }
 
 onMounted(async () => {
+  // tenta inicializar selectedDate a partir da query string (rota /calendar?date=YYYY-MM-DD)
   const qdate = route.query.date
-  if (qdate) {
+  if (qdate && typeof qdate === 'string') {
     const parts = String(qdate).split('-')
     if (parts.length === 3) {
       year.value = Number(parts[0]) || year.value
       month.value = (Number(parts[1]) - 1) || month.value
-      // garantir formato YYYY-MM-DD local
       selectedDate.value = `${String(parts[0]).padStart(4,'0')}-${pad(Number(parts[1]))}-${pad(Number(parts[2]))}`
+    } else {
+      // se veio com timestamp, tenta extrair
+      const k = toKeyFromISO(qdate)
+      if (k) selectedDate.value = k
     }
   }
   await fetchVisits()
@@ -235,26 +295,26 @@ onMounted(async () => {
 .dot { width:8px; height:8px; border-radius:50%; background:#1A2E66; display:inline-block; }
 .today { outline: 2px solid #4ADE80; }
 .day-cell.selected {
-  outline: 3px solid #4ADE80; /* borda verde para dia selecionado */
+  outline: 3px solid #4ADE80;
   z-index: 2;
 }
 
-/* red rectangle for visits inside day cell */
 .visits-rect {
   margin-top: 6px;
-  background: rgba(220, 53, 69, 0.1); /* light red background */
-  border: 1px solid rgba(220,53,69,0.18);
+  background: rgba(220, 53, 69, 0.06);
+  border: 1px solid rgba(220,53,69,0.12);
   border-radius: 6px;
   padding: 6px;
   max-height: 56px;
   overflow: hidden;
 }
 .visit-line {
-  font-size: 11px;
-  color: #b02a37; /* dark red text */
+  font-size: 12px;
+  color: #b02a37;
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
+  display: block;
 }
 .visit-time { font-weight: 600; margin-right: 6px; }
 .more { text-align: right; color: #8b0000; }

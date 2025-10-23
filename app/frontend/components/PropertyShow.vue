@@ -3,10 +3,8 @@
     <div v-if="loading" class="text-center">Carregando...</div>
     <div v-else-if="error" class="alert alert-danger">{{ error }}</div>
     <div v-else class="card shadow-sm">
-      <!-- GALERIA: imagem principal + miniaturas -->
-      <div class="property-gallery p-3"
-           @mouseenter="stopAutoAdvance"
-           @mouseleave="startAutoAdvance">
+      <!-- GALERIA -->
+      <div class="property-gallery p-3" @mouseenter="stopAutoAdvance" @mouseleave="startAutoAdvance">
         <div class="main-photo mb-2 position-relative">
           <img
             v-if="photos.length"
@@ -22,7 +20,6 @@
             </div>
           </div>
 
-          <!-- setas sobre a imagem principal -->
           <button v-if="photos.length" class="nav-arrow left" @click.stop="prevPhoto" aria-label="Anterior">&lsaquo;</button>
           <button v-if="photos.length" class="nav-arrow right" @click.stop="nextPhoto" aria-label="Próximo">&rsaquo;</button>
         </div>
@@ -39,12 +36,11 @@
         </div>
       </div>
 
-      <!-- INFORMAÇÕES DO IMÓVEL (abaixo da galeria) -->
+      <!-- INFORMAÇÕES -->
       <div class="card-body">
         <h3 class="card-title">{{ property.title }}</h3>
         <p class="text-muted mb-1">{{ property.city }}, {{ property.state }}</p>
         <p class="h4 text-primary mb-3">{{ formatPrice(property.price) }}</p>
-
         <p v-if="property.description" class="mb-3">{{ property.description }}</p>
 
         <ul class="list-inline mb-3 small">
@@ -60,26 +56,52 @@
         <div class="mt-3">
           <router-link :to="{ name: 'properties-edit', params: { id: property.id } }" v-if="canEdit" class="btn btn-secondary me-2">Editar</router-link>
           <router-link to="/" class="btn btn-outline-primary">Voltar</router-link>
-
-          <!-- Agendar visita: botão visível para qualquer pessoa -->
           <button @click="handleScheduleClick" class="btn btn-primary ms-2">
             {{ showScheduler ? 'Cancelar' : 'Agendar visita' }}
           </button>
+          <a :href="whatsappLink" target="_blank" rel="noopener" class="btn btn-success ms-2">Contatar via WhatsApp</a>
         </div>
 
-        <!-- scheduler form -->
-        <div v-if="showScheduler" class="mt-3">
+        <!-- SCHEDULER -->
+        <div v-if="showScheduler" class="mt-3 p-3 border rounded shadow-sm bg-white">
+          <!-- Data -->
           <div class="mb-2">
-            <label class="form-label small">Data e hora</label>
-            <input type="datetime-local" v-model="scheduledAt" class="form-control" />
+            <label class="form-label small">Data da visita</label>
+            <input
+              type="date"
+              v-model="scheduledDate"
+              class="form-control"
+              :min="minDate"
+              :class="{ 'is-invalid': dateError }"
+            />
+            <div v-if="dateError" class="invalid-feedback small">{{ dateError }}</div>
           </div>
+
+          <!-- Hora -->
+          <div class="mb-2">
+            <label class="form-label small">Hora da visita</label>
+            <input
+              type="time"
+              v-model="scheduledTime"
+              class="form-control"
+              :class="{ 'is-invalid': timeError }"
+            />
+            <div v-if="timeError" class="invalid-feedback small">{{ timeError }}</div>
+          </div>
+
+          <!-- Observações -->
           <div class="mb-2">
             <label class="form-label small">Observações (opcional)</label>
             <textarea v-model="notes" class="form-control" rows="2"></textarea>
           </div>
 
+          <!-- Botão -->
           <div class="d-flex align-items-center">
-            <button class="btn btn-success me-2" :disabled="submitting" @click="schedule">
+            <button
+              class="btn btn-success me-2"
+              :disabled="submitting || dateError || timeError"
+              @click="schedule"
+            >
               {{ submitting ? 'Enviando...' : 'Confirmar agendamento' }}
             </button>
             <div v-if="formError" class="text-danger small">{{ formError }}</div>
@@ -93,7 +115,6 @@
   <!-- LIGHTBOX modal -->
   <div v-if="lightboxOpen" class="lightbox-backdrop" @click.self="closeLightbox">
     <button class="lightbox-close btn-close" @click="closeLightbox" aria-label="Fechar"></button>
-
     <button class="lightbox-arrow left" @click.stop="prevPhoto" aria-label="Anterior">&#10094;</button>
     <div class="lightbox-content">
       <img :src="photos[selectedPhoto]" alt="lightbox photo" class="lightbox-img" />
@@ -110,57 +131,62 @@ import { useRoute } from 'vue-router'
 const route = useRoute()
 const id = route.params.id
 
-// ...existing reactive state...
+// reactive state
 const property = ref(null)
 const loading = ref(true)
 const error = ref(null)
 const currentUser = ref(null)
 
-// ...existing scheduling refs...
+// scheduler state
 const showScheduler = ref(false)
-const scheduledAt = ref('')
+const scheduledDate = ref('')
+const scheduledTime = ref('')
 const notes = ref('')
 const submitting = ref(false)
 const formError = ref(null)
 const successMessage = ref(null)
 
-// GALERIA / LIGHTBOX / CAROUSEL
+// whatsapp link
+const whatsappLink = computed(() => {
+  if (!property.value) return '#'
+  const phone = '5513978252727'
+  const text = encodeURIComponent(`Olá, tenho interesse no imóvel "${property.value.title}"`)
+  return `https://wa.me/${phone}?text=${text}`
+})
+
+// gallery / lightbox / carousel
 const selectedPhoto = ref(0)
 const photos = computed(() => (property.value && property.value.photos_urls) ? property.value.photos_urls : [])
 const lightboxOpen = ref(false)
 let autoAdvanceInterval = ref(null)
 
-// reset selected when property changes
-watch(property, (p) => {
+watch(property, () => {
   selectedPhoto.value = 0
-  // restart autoplay when new property loaded
   stopAutoAdvance()
   nextTick(() => startAutoAdvance())
 })
 
-// lifecycle
 onBeforeUnmount(() => {
   stopAutoAdvance()
   removeKeyListeners()
 })
 
-// carregamento e fetchCurrent (existing logic)
+// fetch user
 const fetchCurrent = async () => {
   try {
     const res = await fetch('/current_user')
     if (res.ok) currentUser.value = await res.json()
-  } catch (e) {}
+  } catch {}
 }
 
+// load property
 const load = async () => {
   loading.value = true
   try {
     const res = await fetch(`/properties/${id}.json`)
     if (!res.ok) throw new Error('Imóvel não encontrado')
     property.value = await res.json()
-    // ensure selectedPhoto reset
     selectedPhoto.value = 0
-    // start carousel if photos present
     startAutoAdvance()
   } catch (e) {
     error.value = e.message
@@ -173,47 +199,39 @@ onMounted(async () => {
   await fetchCurrent()
   await load()
 
-  if (route.query.show_schedule) {
-    if (currentUser.value) {
-      showScheduler.value = true
-    }
+  if (route.query.show_schedule && currentUser.value) {
+    showScheduler.value = true
   }
 })
 
-// carousel control functions
+// carousel
 const startAutoAdvance = () => {
   stopAutoAdvance()
   if (!photos.value || photos.value.length <= 1) return
-  autoAdvanceInterval.value = setInterval(() => {
-    nextPhoto()
-  }, 5000)
+  autoAdvanceInterval.value = setInterval(() => nextPhoto(), 5000)
 }
-
 const stopAutoAdvance = () => {
   if (autoAdvanceInterval.value) {
     clearInterval(autoAdvanceInterval.value)
     autoAdvanceInterval.value = null
   }
 }
-
 const prevPhoto = () => {
-  if (!photos.value || photos.value.length === 0) return
+  if (!photos.value.length) return
   selectedPhoto.value = (selectedPhoto.value - 1 + photos.value.length) % photos.value.length
 }
-
 const nextPhoto = () => {
-  if (!photos.value || photos.value.length === 0) return
+  if (!photos.value.length) return
   selectedPhoto.value = (selectedPhoto.value + 1) % photos.value.length
 }
 
 // lightbox
 const openLightbox = () => {
-  if (!photos.value || photos.value.length === 0) return
+  if (!photos.value.length) return
   lightboxOpen.value = true
   stopAutoAdvance()
   addKeyListeners()
 }
-
 const closeLightbox = () => {
   lightboxOpen.value = false
   removeKeyListeners()
@@ -230,63 +248,25 @@ const handleKeydown = (e) => {
 const addKeyListeners = () => window.addEventListener('keydown', handleKeydown)
 const removeKeyListeners = () => window.removeEventListener('keydown', handleKeydown)
 
-// ...existing functions (formatPrice, canEdit, csrfToken, handleScheduleClick, schedule, etc.) ...
-const formatPrice = (v) => {
-  if (v == null) return '—'
-  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(v))
-}
-
-const canEdit = computed(() => {
-  if (!currentUser.value || !property.value) return false
-  const role = currentUser.value.role
-  if (role === 'admin' || role === 2) return true
-  return role === 'agent' && currentUser.value.id === property.value.agent_id
-})
-
-// util para obter csrf token
-const csrfToken = () => {
-  const m = document.querySelector('meta[name="csrf-token"]')
-  return m ? m.getAttribute('content') : ''
-}
-
-// novo: botão visível para todos; decide ação conforme login
-const handleScheduleClick = () => {
-  if (currentUser.value) {
-    showScheduler.value = !showScheduler.value
-    return
-  }
-  // build return path that forces the scheduler to open after login
-  const path = window.location.pathname + window.location.search
-  const separator = path.includes('?') ? '&' : '?'
-  const returnTo = `${path}${separator}show_schedule=1`
-
-  // save desired return path in localStorage so the SPA can redirect after Devise returns to the SPA
-  try {
-    localStorage.setItem('after_sign_in', returnTo)
-  } catch (e) {
-    // ignore storage errors
-  }
-
-  // redirect to Devise login page (no query param required)
-  window.location.href = '/users/sign_in'
-}
-
+// schedule visit
 const schedule = async () => {
   formError.value = null
   successMessage.value = null
-  if (!scheduledAt.value) {
+
+  if (!scheduledDate.value || !scheduledTime.value) {
     formError.value = 'Escolha data e hora da visita.'
     return
   }
+
+  const scheduledAtISO = new Date(`${scheduledDate.value}T${scheduledTime.value}`).toISOString()
   submitting.value = true
+
   try {
-    // converter datetime-local (YYYY-MM-DDTHH:MM) para ISO com timezone UTC
-    const iso = new Date(scheduledAt.value).toISOString()
     const payload = {
       visit: {
         property_id: property.value.id,
         agent_id: property.value.agent_id,
-        scheduled_at: iso,
+        scheduled_at: scheduledAtISO,
         notes: notes.value
       }
     }
@@ -299,12 +279,13 @@ const schedule = async () => {
       body: JSON.stringify(payload),
       credentials: 'same-origin'
     })
+
     if (res.ok) {
-      const data = await res.json()
+      await res.json()
       successMessage.value = 'Visita agendada com sucesso.'
       showScheduler.value = false
-      // opcional: limpar form
-      scheduledAt.value = ''
+      scheduledDate.value = ''
+      scheduledTime.value = ''
       notes.value = ''
     } else {
       const err = await res.json().catch(() => null)
@@ -317,93 +298,53 @@ const schedule = async () => {
   }
 }
 
-// permite que o botão seja sempre exibido (visível para qualquer pessoa)
-const canSchedule = computed(() => true)
+// helpers
+const formatPrice = (v) => {
+  if (v == null) return '—'
+  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(v))
+}
+const canEdit = computed(() => {
+  if (!currentUser.value || !property.value) return false
+  const role = currentUser.value.role
+  if (role === 'admin' || role === 2) return true
+  return role === 'agent' && currentUser.value.id === property.value.agent_id
+})
+const csrfToken = () => document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+
+// handle schedule button
+const handleScheduleClick = () => {
+  if (currentUser.value) {
+    showScheduler.value = !showScheduler.value
+    return
+  }
+  const path = window.location.pathname + window.location.search
+  const separator = path.includes('?') ? '&' : '?'
+  const returnTo = `${path}${separator}show_schedule=1`
+  try { localStorage.setItem('after_sign_in', returnTo) } catch {}
+  window.location.href = '/users/sign_in'
+}
 </script>
 
 <style scoped>
 .card { overflow: hidden; }
-
-/* galeria */
 .property-gallery { background: #fff; }
 .property-gallery .main-photo img { height: 360px; object-fit: cover; border-radius: 6px; }
-
-/* arrow buttons overlay on main photo */
-.nav-arrow {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  background: rgba(26,46,102,0.65);
-  color: #fff;
-  border: none;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-  cursor: pointer;
-}
+.nav-arrow { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(26,46,102,0.65); color: #fff; border: none; width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; cursor: pointer; }
 .nav-arrow.left { left: 12px; }
 .nav-arrow.right { right: 12px; }
 .nav-arrow:hover { background: rgba(26,46,102,0.85); }
-
-/* thumbs */
 .thumbs { margin-top: 0.5rem; }
-.thumb {
-  width: 96px;
-  height: 72px;
-  object-fit: cover;
-  border-radius: 6px;
-  cursor: pointer;
-  border: 2px solid transparent;
-}
+.thumb { width: 96px; height: 72px; object-fit: cover; border-radius: 6px; cursor: pointer; border: 2px solid transparent; }
 .thumb.active { border-color: #1A2E66; }
 .thumb:hover { opacity: 0.9; transform: scale(1.02); transition: .12s; }
-
-/* LIGHTBOX */
-.lightbox-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.85);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2000;
-  padding: 1rem;
-}
+.lightbox-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 2000; padding: 1rem; }
 .lightbox-content { max-width: 1100px; width: 100%; text-align: center; }
 .lightbox-img { max-height: calc(100vh - 160px); width: auto; max-width: 100%; border-radius: 6px; }
 .lightbox-caption { opacity: 0.9; }
-
-/* arrows in lightbox */
-.lightbox-arrow {
-  position: fixed;
-  top: 50%;
-  transform: translateY(-50%);
-  border: none;
-  background: transparent;
-  color: #fff;
-  font-size: 2.5rem;
-  padding: 0.5rem 0.8rem;
-  cursor: pointer;
-  z-index: 2100;
-}
+.lightbox-arrow { position: fixed; top: 50%; transform: translateY(-50%); border: none; background: transparent; color: #fff; font-size: 2.5rem; padding: 0.5rem 0.8rem; cursor: pointer; z-index: 2100; }
 .lightbox-arrow.left { left: 20px; }
 .lightbox-arrow.right { right: 20px; }
-
-/* close button */
-.lightbox-close {
-  position: fixed;
-  top: 16px;
-  right: 16px;
-  z-index: 2200;
-  background: rgba(255,255,255,0.06);
-  color: #fff;
-}
-
-/* responsive */
+.lightbox-close { position: fixed; top: 16px; right: 16px; z-index: 2200; background: rgba(255,255,255,0.06); color: #fff; }
 @media (max-width: 576px) {
   .property-gallery .main-photo img { height: 220px; }
   .thumb { width: 64px; height: 48px; }

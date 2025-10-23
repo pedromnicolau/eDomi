@@ -1,6 +1,10 @@
 Rails.application.routes.draw do
   # usar controller customizado para sessions para capturar redirect_to na tela de login
-  devise_for :users, controllers: { sessions: "users/sessions" }
+  devise_for :users, controllers: {
+    sessions: "users/sessions",
+    registrations: "users/registrations"  # <--- adicione isso
+  }
+
 
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
@@ -17,8 +21,12 @@ Rails.application.routes.draw do
 
   get "*path", to: "spa#index", constraints: ->(req) { req.format.html? }
 
+  resources :notifications, only: [:index] do
+    member do
+      patch :mark_as_read
+    end
+  end
   resources :properties
-  resources :visits, only: [ :create ]
-  resources :notifications, only: [ :index ]
+  resources :visits, only: [ :create, :index ]
   get "/current_user", to: "users#current"
 end

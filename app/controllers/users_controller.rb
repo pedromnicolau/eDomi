@@ -13,4 +13,12 @@ class UsersController < ApplicationController
       render json: nil, status: :ok
     end
   end
+
+  def update
+    if current_user.update(user_params)
+      render json: current_user
+    else
+      render json: { error: current_user.errors.full_messages.join(', ') }, status: :unprocessable_entity
+    end
+  end
 end
