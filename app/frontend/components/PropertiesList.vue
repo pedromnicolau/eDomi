@@ -1,5 +1,8 @@
 <template>
   <div class="container py-4">
+    <!-- filtro -->
+    <PropertiesFilter @apply-filters="onApplyFilters" @reset-filters="onResetFilters" />
+    <div class="mb-2 small text-muted">Exibindo {{ filteredProperties.length }} de {{ properties.length }} imóveis</div>
 
     <!-- novo botão 'Novo imóvel' posicionado antes do título -->
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -23,9 +26,9 @@
     <div v-if="loading" class="text-center">Carregando...</div>
     <div v-else-if="error" class="alert alert-danger">{{ error }}</div>
     <div v-else>
-      <div v-if="properties.length === 0" class="text-muted">Nenhum imóvel encontrado.</div>
+      <div v-if="filteredProperties.length === 0" class="text-muted">Nenhum imóvel encontrado.</div>
       <div class="row g-3">
-        <div class="col-md-4" v-for="p in properties" :key="p.id">
+        <div class="col-md-4" v-for="p in filteredProperties" :key="p.id">
           <div class="card h-100 property-card">
             <!-- imagem/carrossel no topo -->
               <div class="card-img-top position-relative overflow-hidden" style="height:220px;">
@@ -69,6 +72,7 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+import PropertiesFilter from './PropertiesFilter.vue'
 
 const properties = ref([])
 const loading = ref(true)
@@ -77,6 +81,9 @@ const currentUser = ref(null)
 
 // novo: mapa de índices de foto por property id
 const selectedIndices = ref({})
+
+// novo: filtros aplicados
+const appliedFilters = ref({}) // recebe filtros do componente
 
 const getCsrf = () => document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
 
@@ -166,6 +173,47 @@ const currentPhotoUrl = (propertyId, prop) => {
   const idx = selectedIndices.value[propertyId] ?? 0
   return prop.photos_urls[idx] || prop.photos_urls[0]
 }
+
+// aplica filtros recebidos do componente filho
+const onApplyFilters = (f) => {
+  // normalizar tipos: transformar strings vazias em null
+  const normalized = { ...f }
+  for (const k in normalized) {
+    if (normalized[k] === '' || normalized[k] === undefined) normalized[k] = null
+    // convert furnished string to boolean or null
+    if (k === 'furnished' && normalized[k] !== null) {
+      normalized[k] = normalized[k] === 'true'
+    }
+  }
+  appliedFilters.value = normalized
+}
+const onResetFilters = () => { appliedFilters.value = {} }
+
+// filteredProperties aplica os filtros localmente
+const filteredProperties = computed(() => {
+  if (!properties.value || !properties.value.length) return []
+  const list = properties.value.filter(p => {
+    const f = appliedFilters.value
+    if (!f || Object.keys(f).length === 0) return true
+    // cidade
+    if (f.city && (!p.city || !String(p.city).toLowerCase().includes(String(f.city).toLowerCase()))) return false
+    if (f.state && (!p.state || String(p.state).toLowerCase() !== String(f.state).toLowerCase())) return false
+    if (f.property_type && String(p.property_type) !== String(p.property_type)) return false
+    if (f.bedrooms && Number(p.bedrooms) < Number(f.bedrooms)) return false
+    if (f.bathrooms && Number(p.bathrooms) < Number(f.bathrooms)) return false
+    if (f.parking_spaces && Number(p.parking_spaces) < Number(f.parking_spaces)) return false
+    if (f.furnished !== null && f.furnished !== undefined) {
+      if (f.furnished && !p.furnished) return false
+      if (!f.furnished && p.furnished) return false
+    }
+    if (f.min_price && Number(p.price) < Number(f.min_price)) return false
+    if (f.max_price && Number(p.price) > Number(f.max_price)) return false
+    if (f.min_area && Number(p.area || 0) < Number(f.min_area)) return false
+    if (f.max_area && Number(p.area || 0) > Number(f.max_area)) return false
+    return true
+  })
+  return list
+})
 </script>
 
 <style scoped>

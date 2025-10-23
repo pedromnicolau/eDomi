@@ -11,6 +11,8 @@ import ResetPassword from '@/components/users/ResetPassword.vue'
 import EditProfile from '@/components/users/EditProfile.vue'
 import ChangePassword from '@/components/users/ChangePassword.vue'
 import CalendarView from '@/components/CalendarView.vue'
+import Privacy from '@/components/Privacy.vue'
+import Terms from '@/components/Terms.vue'
 
 const routes = [
   { path: '/', name: 'home', component: PropertiesList },
@@ -25,7 +27,9 @@ const routes = [
   { path: '/users/password/edit', name: 'password-edit', component: ResetPassword },
   { path: '/users/edit', name: 'user-edit', component: EditProfile },
   { path: '/users/password/change', name: 'user-password-change', component: ChangePassword },
-  { path: '/calendar', name: 'calendar', component: CalendarView }
+  { path: '/calendar', name: 'calendar', component: CalendarView },
+  { path: '/privacy', name: 'privacy', component: Privacy },
+  { path: '/terms', name: 'terms', component: Terms }
 ]
 
 const router = createRouter({
