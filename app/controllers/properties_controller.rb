@@ -14,7 +14,8 @@ class PropertiesController < ApplicationController
         :id, :title, :description, :price, :city, :state,
         :bedrooms, :bathrooms, :parking_spaces, :furnished,
         :condominium_fee, :iptu, :address, :property_type,
-        :status, :area, :year_built, :agent_id
+        :status, :area, :year_built, :agent_id,
+        :neighborhood, :zip_code
       ],
       methods: [ :agent_name, :photos_urls, :photos_data ]
     )
@@ -25,7 +26,8 @@ class PropertiesController < ApplicationController
       only: [
         :id, :title, :description, :price, :city, :state,
         :bedrooms, :bathrooms, :parking_spaces, :furnished,
-        :condominium_fee, :iptu, :address, :property_type, :status, :area, :year_built, :agent_id
+        :condominium_fee, :iptu, :address, :property_type, :status, :area, :year_built, :agent_id,
+        :neighborhood, :zip_code
       ],
       methods: [ :agent_name, :photos_urls, :photos_data ]
     )

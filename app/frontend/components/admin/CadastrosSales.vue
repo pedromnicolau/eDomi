@@ -78,7 +78,12 @@ const formatCurrency = (v) => {
 
 <style scoped>
 .admin-panel { padding: 1.25rem 0 2.5rem; }
-.container { max-width: 1140px; }
+.container {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding-left: 24px;
+  padding-right: 24px;
+}
 .admin-card { background: #fff; border-radius: 14px; padding: 18px; box-shadow: 0 10px 30px rgba(15,35,77,0.06); border: 1px solid rgba(15,35,77,0.06); }
 .admin-toolbar h3 { margin: 0; font-weight: 600; color: #0f254d; font-size: 1.25rem; }
 .search-wrapper { position: relative; min-width: 260px; }

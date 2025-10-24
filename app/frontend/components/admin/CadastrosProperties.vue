@@ -2,52 +2,113 @@
   <div class="admin-panel">
     <div class="container">
       <div class="admin-toolbar d-flex align-items-center mb-3">
-       <h3 class="me-auto">Cadastros — Imóveis</h3>
-       <div class="d-flex align-items-center">
-         <div class="search-wrapper me-2">
-           <input v-model="query" class="form-control form-control-sm" placeholder="Filtrar por título, cidade, bairro..." />
-           <i class="fa fa-search search-icon" aria-hidden="true"></i>
-         </div>
-         <button class="btn add-btn btn-sm" @click="addNew">Adicionar novo(a)</button>
-       </div>
-     </div>
+        <h3 class="me-auto">Cadastros — Imóveis</h3>
+        <div class="d-flex align-items-center">
+          <button class="btn add-btn btn-sm" @click="addNew">+</button>
+        </div>
+      </div>
+
+      <!-- CHANGED: múltiplos filtros funcionais -->
+      <div class="filters-wrap my-3">
+        <div class="filters-row row g-2 align-items-center">
+          <div class="col-md-4">
+            <input v-model="filterTitle" class="form-control form-control-sm" placeholder="Filtrar por título..." />
+          </div>
+          <div class="col-md-3">
+            <input v-model="filterType" class="form-control form-control-sm" placeholder="Filtrar por tipo..." />
+          </div>
+          <div class="col-md-2">
+            <input v-model="filterCity" class="form-control form-control-sm" placeholder="Filtrar por cidade..." />
+          </div>
+          <div class="col-md-2">
+            <input v-model="filterNeighborhood" class="form-control form-control-sm" placeholder="Filtrar por bairro..." />
+          </div>
+          <div class="col-md-1 text-md-end">
+            <button class="btn btn-sm filters-toggle" @click="toggleAdvanced" :aria-expanded="showAdvanced">
+              {{ showAdvanced ? '▲' : '▼' }}
+            </button>
+          </div>
+        </div>
+
+        <!-- linha inferior com preços (aparece ao expandir) -->
+        <transition name="fade-slide">
+          <div v-show="showAdvanced" class="filters-advanced row g-2 mt-2">
+            <div class="col-md-2">
+              <input v-model="filterMinPrice" class="form-control form-control-sm" placeholder="Min R$" type="number" min="0" />
+            </div>
+            <div class="col-md-2">
+              <input v-model="filterMaxPrice" class="form-control form-control-sm" placeholder="Max R$" type="number" min="0" />
+            </div>
+            <!-- espaço flexível: mantém alinhamento em telas maiores -->
+            <div class="col-md-8"></div>
+          </div>
+        </transition>
+      </div>
 
       <div class="admin-card">
         <div v-if="loading" class="text-muted">Carregando...</div>
         <div v-else class="table-responsive">
           <table class="table table-sm">
-           <thead>
-             <tr>
-               <th>Título</th>
-               <th>Tipo</th>
-               <th>Cidade</th>
-               <th>Bairro</th>
-               <th>Valor</th>
-             </tr>
-           </thead>
-           <tbody>
-             <tr v-for="p in filtered" :key="p.id">
-               <td><router-link :to="{ name: 'properties-show', params: { id: p.id }}">{{ p.title || p.name || '-' }}</router-link></td>
-               <td>{{ p.property_type || '-' }}</td>
-               <td>{{ p.city || '-' }}</td>
-               <td>{{ p.neighborhood || '-' }}</td>
-               <td>{{ p.price ? formatCurrency(p.price) : '-' }}</td>
-             </tr>
-           </tbody>
+            <thead>
+              <tr>
+                <th>Título</th>
+                <th>Tipo</th>
+                <th>Cidade</th>
+                <th>Bairro</th>
+                <th>Valor</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- changed: impedir propagação do evento contextmenu -->
+              <tr v-for="p in filtered" :key="p.id" @contextmenu.prevent.stop="openMenu($event, p)">
+                <td><router-link :to="{ name: 'properties-show', params: { id: p.id }}">{{ p.title || p.name || '-' }}</router-link></td>
+                <td>{{ p.property_type || '-' }}</td>
+                <td>{{ p.city || '-' }}</td>
+                <td>{{ p.neighborhood || '-' }}</td>
+                <td>{{ p.price ? formatCurrency(p.price) : '-' }}</td>
+              </tr>
+            </tbody>
           </table>
         </div>
+
+        <!-- menu contextual: permanece no template but será teleportado para body -->
+        <!-- removido menu local para teleport abaixo -->
       </div>
+
+      <!-- teleport menu to body so it renders above all and is not clipped -->
+      <teleport to="body">
+        <div v-if="menuVisible" class="context-menu" :style="{ left: menuX + 'px', top: menuY + 'px' }" @click.stop>
+          <ul>
+            <li @click="viewRecord(menuRecord)">Ver</li>
+            <li @click="editRecord(menuRecord)">Editar</li>
+            <li class="danger" @click="deleteRecord(menuRecord)">Excluir</li>
+          </ul>
+        </div>
+      </teleport>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 const router = useRouter()
+
 const records = ref([])
 const loading = ref(false)
 const query = ref('')
+
+// REPLACED: filtro único -> múltiplos filtros reativos
+const filterTitle = ref('')
+const filterType = ref('')
+const filterCity = ref('')
+const filterNeighborhood = ref('')
+const filterMinPrice = ref('')
+const filterMaxPrice = ref('')
+
+// NEW: controla exibição dos filtros avançados (preços)
+const showAdvanced = ref(false)
+const toggleAdvanced = () => { showAdvanced.value = !showAdvanced.value }
 
 const fetchRecords = async () => {
   loading.value = true
@@ -61,11 +122,38 @@ const fetchRecords = async () => {
 
 onMounted(fetchRecords)
 
-const fields = ['title','name','city','neighborhood','description']
+// filtered agora aplica todos os filtros
 const filtered = computed(() => {
-  const q = String(query.value || '').trim().toLowerCase()
-  if (!q) return records.value
-  return records.value.filter(r => fields.some(f => String(r[f] || '').toLowerCase().includes(q)))
+  const list = records.value || []
+  const t = String(filterTitle.value || '').trim().toLowerCase()
+  const ty = String(filterType.value || '').trim().toLowerCase()
+  const c = String(filterCity.value || '').trim().toLowerCase()
+  const n = String(filterNeighborhood.value || '').trim().toLowerCase()
+  const min = Number(String(filterMinPrice.value || '').replace(/[^\d.-]/g, '') || NaN)
+  const max = Number(String(filterMaxPrice.value || '').replace(/[^\d.-]/g, '') || NaN)
+
+  return list.filter(r => {
+    // strings: se o filtro estiver vazio, aceita; caso contrário verifica includes
+    if (t && !String(r.title || r.name || '').toLowerCase().includes(t)) return false
+    if (ty && !String(r.property_type || '').toLowerCase().includes(ty)) return false
+    if (c && !String(r.city || '').toLowerCase().includes(c)) return false
+    if (n && !String(r.neighborhood || '').toLowerCase().includes(n)) return false
+
+    // preço: tenta normalizar r.price para número
+    const price = (() => {
+      if (r.price == null) return NaN
+      const num = Number(r.price)
+      if (!isNaN(num)) return num
+      // remove símbolos e formatação comum
+      const cleaned = String(r.price).replace(/[^\d.-]/g, '')
+      return Number(cleaned)
+    })()
+
+    if (!isNaN(min) && !isNaN(price) && price < min) return false
+    if (!isNaN(max) && !isNaN(price) && price > max) return false
+
+    return true
+  })
 })
 
 const addNew = () => {
@@ -76,6 +164,98 @@ const addNew = () => {
 const formatCurrency = (v) => {
   try { return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(v)) } catch(e) { return v }
 }
+
+// --- NOVO/ATUALIZADO: menu contextual agora usa viewport + teleport ---
+const menuVisible = ref(false)
+const menuX = ref(0)
+const menuY = ref(0)
+const menuRecord = ref(null)
+
+const openMenu = async (e, rec) => {
+  // posição inicial no cursor (viewport)
+  const initialX = Math.max(8, e.clientX || 0)
+  const initialY = Math.max(8, e.clientY || 0)
+
+  menuRecord.value = rec
+  menuX.value = initialX
+  menuY.value = initialY
+  menuVisible.value = true
+
+  // espera o menu ser renderizado no body para medir e ajustar overflow da viewport
+  await nextTick()
+  const menuEl = document.querySelector('.context-menu')
+  if (menuEl) {
+    const mw = menuEl.offsetWidth
+    const mh = menuEl.offsetHeight
+    const margin = 8
+    const vw = window.innerWidth
+    const vh = window.innerHeight
+
+    // preferência: abrir no canto inferior-esquerdo do cursor (i.e., top/left = cursor)
+    // ajustar se ultrapassar direita/embaixo da viewport
+    if (menuX.value + mw + margin > vw) {
+      menuX.value = Math.max(margin, vw - mw - margin)
+    }
+    if (menuY.value + mh + margin > vh) {
+      menuY.value = Math.max(margin, vh - mh - margin)
+    }
+  }
+}
+
+const closeMenu = () => {
+  menuVisible.value = false
+  menuRecord.value = null
+}
+
+const onGlobalClick = (ev) => {
+  // fechar quando clicar fora do menu
+  if (!menuVisible.value) return
+  const menuEl = document.querySelector('.context-menu')
+  if (!menuEl) return closeMenu()
+  if (!menuEl.contains(ev.target)) closeMenu()
+}
+const onKeyDown = (ev) => { if (ev.key === 'Escape' && menuVisible.value) closeMenu() }
+
+onMounted(() => {
+  window.addEventListener('click', onGlobalClick)
+  window.addEventListener('keydown', onKeyDown)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('click', onGlobalClick)
+  window.removeEventListener('keydown', onKeyDown)
+})
+
+const viewRecord = (rec) => {
+  if (!rec) return
+  router.push({ name: 'properties-show', params: { id: rec.id } }).catch(()=>{})
+  closeMenu()
+}
+const editRecord = (rec) => {
+  if (!rec) return
+  // tenta rota nomeada, fallback para path
+  router.push({ name: 'properties-edit', params: { id: rec.id } }).catch(()=>{
+    router.push({ path: `/properties/${rec.id}/edit` }).catch(()=>{})
+  })
+  closeMenu()
+}
+const deleteRecord = async (rec) => {
+  if (!rec) return
+  const label = rec.title || rec.name || `#${rec.id}`
+  if (!confirm(`Confirmar exclusão de "${label}"?`)) { closeMenu(); return }
+  try {
+    const res = await fetch(`/properties/${rec.id}`, { method: 'DELETE', credentials: 'same-origin' })
+    if (res.ok) {
+      records.value = records.value.filter(r => r.id !== rec.id)
+    } else {
+      alert('Falha ao excluir o registro.')
+    }
+  } catch (e) {
+    alert('Erro ao excluir o registro.')
+  }
+  closeMenu()
+}
+// --- fim menu contextual ---
 </script>
 
 <style scoped>
@@ -83,7 +263,12 @@ const formatCurrency = (v) => {
 .admin-panel { padding: 1.25rem 0 2.5rem; background: transparent; }
 
 /* keep content constrained with same container as navbar */
-.container { max-width: 1140px; } /* matches Bootstrap container wide breakpoint */
+.container {
+  max-width: 1140px; /* matches Bootstrap container wide breakpoint */
+  margin: 0 auto;
+  padding-left: 24px;
+  padding-right: 24px;
+}
 
 /* card */
 .admin-card {
@@ -92,6 +277,7 @@ const formatCurrency = (v) => {
   box-shadow: 0 10px 30px rgba(15, 35, 77, 0.06);
   border: 1px solid rgba(15,35,77,0.06);
   overflow: hidden;
+  position: relative; /* necessário para posicionar o menu contextual corretamente */
 }
 
 /* toolbar */
@@ -162,6 +348,90 @@ const formatCurrency = (v) => {
 /* hover deve prevalecer sobre o striping */
 .table tbody tr:hover {
   background-color: rgba(26,46,102,0.06);
+}
+
+/* menu contextual */
+.context-menu {
+  position: fixed;
+  min-width: 140px;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 12px 30px rgba(15,35,77,0.18);
+  border: 1px solid rgba(15,35,77,0.06);
+  z-index: 9999; /* alto para ficar na frente */
+  padding: 6px;
+  transform-origin: top left;
+}
+.context-menu ul {
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+}
+.context-menu li {
+  padding: 8px 12px;
+  cursor: pointer;
+  color: #0f254d;
+  font-size: 0.95rem;
+  border-radius: 6px;
+}
+.context-menu li:hover { background: rgba(15,35,77,0.06); }
+.context-menu li.danger { color: #c92a2a; }
+
+/* small layout tweaks for filters row */
+.filters-row .form-control { height: 36px; }
+
+/* CHANGED: filtros mais arredondados e com sombra/feedback moderno */
+.filters-row .form-control {
+  height: 42px;
+  border-radius: 999px;           /* fully pill-shaped */
+  padding: 10px 18px;
+  border: 1px solid rgba(15,35,77,0.06);
+  background: #f6f8fb;
+  box-shadow: 0 6px 18px rgba(15,35,77,0.04);
+  transition: box-shadow 150ms ease, transform 120ms ease;
+  min-height: 42px;
+}
+
+/* botão de toggle dos filtros */
+.filters-toggle {
+  border-radius: 999px;
+  padding: 8px 14px;
+  background: #ffffff;
+  border: 1px solid rgba(15,35,77,0.06);
+  box-shadow: 0 6px 18px rgba(15,35,77,0.04);
+  color: #0f254d;
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+.filters-toggle:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(15,35,77,0.06); }
+
+/* linha avançada (preços) também pill-shaped */
+.filters-advanced .form-control {
+  height: 42px;
+  border-radius: 999px;
+  padding: 10px 14px;
+  border: 1px solid rgba(15,35,77,0.06);
+  background: #f6f8fb;
+  box-shadow: 0 6px 18px rgba(15,35,77,0.03);
+}
+
+/* transição simples para abrir/fechar filtros */
+.fade-slide-enter-active, .fade-slide-leave-active {
+  transition: opacity .18s ease, transform .18s ease;
+}
+.fade-slide-enter-from, .fade-slide-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+
+/* responsividade: em telas pequenas, empilha inputs */
+@media (max-width: 576px) {
+  .filters-row .col-md-3,
+  .filters-row .col-md-2,
+  .filters-row .col-md-1,
+  .filters-advanced .col-md-2 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
 }
 
 /* responsive tweaks */

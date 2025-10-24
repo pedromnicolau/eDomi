@@ -1,7 +1,7 @@
 <template>
   <div class="property-form-container py-4">
     <div class="form-card shadow-sm rounded-4 p-4 bg-white mx-auto">
-      <h1 class="h5 fw-semibold mb-4 text-primary">
+      <h1 class="h5 fw-semibold mb-4">
         {{ isEdit ? 'Editar Imóvel' : 'Novo Imóvel' }}
       </h1>
 

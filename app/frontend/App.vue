@@ -10,5 +10,7 @@ import Footer from './components/Footer.vue'
 </script>
 
 <style>
-/* ...optional global styles... */
+.green {
+  color: #4ADE80;
+}
 </style>
