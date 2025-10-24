@@ -14,6 +14,7 @@
         <router-link to="/" class="btn btn-new mx-2">Imóveis</router-link>
         <router-link to="/about" class="btn btn-new mx-2">Sobre</router-link>
         <router-link to="/contact" class="btn btn-new mx-2">Contato</router-link>
+        <router-link to="/calendar" class="btn btn-new mx-2">Visitas</router-link>
 
         <!-- Cadastros dropdown (apenas admin) - controlado por Vue -->
         <div v-if="isAdmin" class="nav-item mx-2 admin-items" ref="cadastrosRef">

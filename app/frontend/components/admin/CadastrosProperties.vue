@@ -61,7 +61,7 @@
             <tbody>
               <!-- changed: impedir propagação do evento contextmenu -->
               <tr v-for="p in filtered" :key="p.id" @contextmenu.prevent.stop="openMenu($event, p)">
-                <td><router-link :to="{ name: 'properties-show', params: { id: p.id }}">{{ p.title || p.name || '-' }}</router-link></td>
+                <td>{{ p.title || p.name || '-' }}</td>
                 <td>{{ p.property_type || '-' }}</td>
                 <td>{{ p.city || '-' }}</td>
                 <td>{{ p.neighborhood || '-' }}</td>
@@ -412,6 +412,14 @@ const deleteRecord = async (rec) => {
   border: 1px solid rgba(15,35,77,0.06);
   background: #f6f8fb;
   box-shadow: 0 6px 18px rgba(15,35,77,0.03);
+}
+
+.add-btn:hover,
+.add-btn:focus {
+  background: #4ADE80 !important;
+  color: #08203a !important;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px rgba(10,20,30,0.08);
 }
 
 /* transição simples para abrir/fechar filtros */

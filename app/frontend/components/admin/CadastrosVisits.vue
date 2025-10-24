@@ -4,11 +4,10 @@
       <div class="admin-toolbar d-flex align-items-center mb-3">
        <h3 class="me-auto">Cadastros — Visitas</h3>
        <div class="d-flex align-items-center">
-         <div class="search-wrapper me-2">
-           <input v-model="query" class="form-control form-control-sm" placeholder="Filtrar por imóvel, data, corretor..." />
-           <i class="fa fa-search search-icon" aria-hidden="true"></i>
-         </div>
-         <button class="btn add-btn btn-sm" @click="addNew">Adicionar novo(a)</button>
+         <div class="col-md-12">
+           <input v-model="filterProperty" class="form-control form-control-sm" placeholder="Filtrar por imóvel" />
+          </div>
+         <button class="btn add-btn btn-sm" @click="addNew">+</button>
        </div>
      </div>
 
@@ -20,14 +19,14 @@
              <tr>
                <th>Imóvel</th>
                <th>Data</th>
-               <th>Usuário</th>
+               <th>Visitante</th>
              </tr>
            </thead>
            <tbody>
              <tr v-for="v in filtered" :key="v.id">
                <td>{{ v.property_title || v.property_id || '-' }}</td>
                <td>{{ formatDate(v.scheduled_at || v.date || v.created_at) }}</td>
-               <td>{{ v.user_name || '-' }}</td>
+               <td>{{ v.buyer_name || '-' }}</td>
              </tr>
            </tbody>
           </table>
@@ -44,6 +43,7 @@ const router = useRouter()
 const records = ref([])
 const loading = ref(false)
 const query = ref('')
+const filterProperty = ref('')
 
 const fetchRecords = async () => {
   loading.value = true
@@ -57,15 +57,20 @@ const fetchRecords = async () => {
 
 onMounted(fetchRecords)
 
-const fields = ['property_title','user_name']
 const filtered = computed(() => {
-  const q = String(query.value || '').trim().toLowerCase()
-  if (!q) return records.value
-  return records.value.filter(r => fields.some(f => String(r[f] || '').toLowerCase().includes(q)))
+  const list = records.value || []
+  const p = String(filterProperty.value || '').trim().toLowerCase()
+
+  return list.filter(r => {
+    // strings: se o filtro estiver vazio, aceita; caso contrário verifica includes
+    if (p && !String(r.property_title || '').toLowerCase().includes(p)) return false
+
+    return true
+  })
 })
 
 const addNew = () => {
-  router.push({ path: '/visits/new' }).catch(()=>{ alert('Rota de criação de visita não implementada') })
+  router.push({ path: '/' })
 }
 
 const formatDate = (iso) => {
@@ -96,6 +101,15 @@ const formatDate = (iso) => {
 .admin-card .table tbody tr:nth-child(odd) td {
   background-color: #ffffff;
 }
+
+.add-btn:hover,
+.add-btn:focus {
+  background: #4ADE80 !important;
+  color: #08203a !important;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px rgba(10,20,30,0.08);
+}
+
 .admin-card .table tbody tr:nth-child(even) td {
   background-color: #f6f8fb;
 }

@@ -4,11 +4,13 @@
       <div class="admin-toolbar d-flex align-items-center mb-3">
        <h3 class="me-auto">Cadastros — Vendas</h3>
        <div class="d-flex align-items-center">
-         <div class="search-wrapper me-2">
-           <input v-model="query" class="form-control form-control-sm" placeholder="Filtrar por imóvel, comprador, corretor..." />
-           <i class="fa fa-search search-icon" aria-hidden="true"></i>
-         </div>
-         <button class="btn add-btn btn-sm" @click="addNew">Adicionar novo(a)</button>
+          <div class="col-md-6">
+           <input v-model="filterProperty" class="form-control form-control-sm" placeholder="Filtrar por imóvel" />
+          </div>
+          <div class="col-md-6">
+           <input v-model="filterAgente" class="form-control form-control-sm" placeholder="Filtrar por corretor" />
+          </div>
+         <button class="btn add-btn btn-sm" @click="addNew">+</button>
        </div>
      </div>
 
@@ -19,17 +21,15 @@
            <thead>
              <tr>
                <th>Imóvel</th>
-               <th>Comprador</th>
                <th>Corretor</th>
                <th>Valor</th>
              </tr>
            </thead>
            <tbody>
              <tr v-for="s in filtered" :key="s.id">
-               <td>{{ s.property_title || s.property_id || '-' }}</td>
-               <td>{{ s.buyer_name || '-' }}</td>
-               <td>{{ s.agent_name || '-' }}</td>
-               <td>{{ s.price ? formatCurrency(s.price) : '-' }}</td>
+               <td>{{ s.property_title }}</td>
+               <td>{{ s.agent_name }}</td>
+               <td>{{ s.value ? formatCurrency(s.value) : '-' }}</td>
              </tr>
            </tbody>
           </table>
@@ -46,6 +46,8 @@ const router = useRouter()
 const records = ref([])
 const loading = ref(false)
 const query = ref('')
+const filterProperty = ref('')
+const filterAgente = ref('')
 
 const fetchRecords = async () => {
   loading.value = true
@@ -59,16 +61,22 @@ const fetchRecords = async () => {
 
 onMounted(fetchRecords)
 
-const fields = ['property_title','buyer_name','agent_name']
 const filtered = computed(() => {
-  const q = String(query.value || '').trim().toLowerCase()
-  if (!q) return records.value
-  return records.value.filter(r => fields.some(f => String(r[f] || '').toLowerCase().includes(q)))
+  const list = records.value || []
+  const p = String(filterProperty.value || '').trim().toLowerCase()
+  const a = String(filterAgente.value || '').trim().toLowerCase()
+
+  return list.filter(r => {
+    // strings: se o filtro estiver vazio, aceita; caso contrário verifica includes
+    if (p && !String(r.property_title || '').toLowerCase().includes(p)) return false
+    if (a && !String(r.agent_name || '').toLowerCase().includes(a)) return false
+
+    return true
+  })
 })
 
 const addNew = () => {
-  // não há rota padrão -> aviso (implemente rota de criação se desejar)
-  router.push({ path: '/sales/new' }).catch(()=>{ alert('Rota de criação de venda não implementada') })
+  router.push({ path: '/' })
 }
 
 const formatCurrency = (v) => {
@@ -98,6 +106,15 @@ const formatCurrency = (v) => {
 .admin-card .table tbody tr:nth-child(even) td {
   background-color: #f6f8fb;
 }
+
+.add-btn:hover,
+.add-btn:focus {
+  background: #4ADE80 !important;
+  color: #08203a !important;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px rgba(10,20,30,0.08);
+}
+
 .admin-card .table tbody tr:hover td {
   background-color: rgba(26,46,102,0.06) !important;
 }

@@ -4,13 +4,14 @@
       <div class="admin-toolbar d-flex align-items-center mb-3">
        <h3 class="me-auto">Cadastros — Comissões</h3>
        <div class="d-flex align-items-center">
-         <div class="search-wrapper me-2">
-           <input v-model="query" class="form-control form-control-sm" placeholder="Filtrar por corretor, venda, status..." />
-           <i class="fa fa-search search-icon" aria-hidden="true"></i>
-         </div>
-         <button class="btn add-btn btn-sm" @click="addNew">Adicionar novo(a)</button>
+          <div class="col-md-6">
+           <input v-model="filterAgente" class="form-control form-control-sm" placeholder="Filtrar por corretor" />
+          </div>
+          <div class="col-md-6">
+           <input v-model="filterSale" class="form-control form-control-sm" placeholder="Filtrar por venda" />
+          </div>
        </div>
-     </div>
+      </div>
 
       <div class="admin-card">
         <div v-if="loading" class="text-muted">Carregando...</div>
@@ -27,9 +28,9 @@
            <tbody>
              <tr v-for="c in filtered" :key="c.id">
                <td>{{ c.agent_name || '-' }}</td>
-               <td>{{ c.sale_id || '-' }}</td>
+               <td>{{ c.sale_name || '-' }}</td>
                <td>{{ c.percentage ? c.percentage + '%' : '-' }}</td>
-               <td>{{ c.amount ? formatCurrency(c.amount) : '-' }}</td>
+               <td>{{ c.value ? formatCurrency(c.value) : '-' }}</td>
              </tr>
            </tbody>
           </table>
@@ -46,6 +47,8 @@ const router = useRouter()
 const records = ref([])
 const loading = ref(false)
 const query = ref('')
+const filterAgente = ref('')
+const filterSale = ref('')
 
 const fetchRecords = async () => {
   loading.value = true
@@ -59,11 +62,18 @@ const fetchRecords = async () => {
 
 onMounted(fetchRecords)
 
-const fields = ['agent_name','sale_id']
 const filtered = computed(() => {
-  const q = String(query.value || '').trim().toLowerCase()
-  if (!q) return records.value
-  return records.value.filter(r => fields.some(f => String(r[f] || '').toLowerCase().includes(q)))
+  const list = records.value || []
+  const a = String(filterAgente.value || '').trim().toLowerCase()
+  const s = String(filterSale.value || '').trim().toLowerCase()
+
+  return list.filter(r => {
+    // strings: se o filtro estiver vazio, aceita; caso contrário verifica includes
+    if (a && !String(r.agent_name || '').toLowerCase().includes(a)) return false
+    if (s && !String(r.sale_name || '').toLowerCase().includes(s)) return false
+
+    return true
+  })
 })
 
 const addNew = () => {
@@ -97,6 +107,7 @@ const formatCurrency = (v) => {
 .admin-card .table tbody tr:nth-child(even) td {
   background-color: #f6f8fb;
 }
+
 .admin-card .table tbody tr:hover td {
   background-color: rgba(26,46,102,0.06) !important;
 }

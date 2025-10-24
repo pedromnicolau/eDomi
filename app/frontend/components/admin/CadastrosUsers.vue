@@ -4,11 +4,14 @@
       <div class="admin-toolbar d-flex align-items-center mb-3">
        <h3 class="me-auto">Cadastros — Usuários</h3>
        <div class="d-flex align-items-center">
-         <div class="search-wrapper me-2">
-           <input v-model="query" class="form-control form-control-sm" placeholder="Filtrar por nome ou email..." />
-           <i class="fa fa-search search-icon" aria-hidden="true"></i>
-         </div>
-         <button class="btn add-btn btn-sm" @click="addNew">Adicionar novo(a)</button>
+        <div class="filters-row"></div>
+          <div class="col-md-6">
+           <input v-model="filterName" class="form-control form-control-sm" placeholder="Filtrar por nome" />
+          </div>
+          <div class="col-md-6">
+           <input v-model="filterEmail" class="form-control form-control-sm" placeholder="Filtrar por email" />
+          </div>
+         <button class="btn add-btn btn-sm" @click="addNew">+</button>
        </div>
      </div>
 
@@ -44,6 +47,8 @@ const router = useRouter()
 const records = ref([])
 const loading = ref(false)
 const query = ref('')
+const filterName = ref('')
+const filterEmail = ref('')
 
 const fetchRecords = async () => {
   loading.value = true
@@ -57,11 +62,18 @@ const fetchRecords = async () => {
 
 onMounted(fetchRecords)
 
-const fields = ['name','email','role']
 const filtered = computed(() => {
-  const q = String(query.value || '').trim().toLowerCase()
-  if (!q) return records.value
-  return records.value.filter(r => fields.some(f => String(r[f] || '').toLowerCase().includes(q)))
+  const list = records.value || []
+  const n = String(filterName.value || '').trim().toLowerCase()
+  const e = String(filterEmail.value || '').trim().toLowerCase()
+
+  return list.filter(r => {
+    // strings: se o filtro estiver vazio, aceita; caso contrário verifica includes
+    if (n && !String(r.name || '').toLowerCase().includes(n)) return false
+    if (e && !String(r.email || '').toLowerCase().includes(e)) return false
+
+    return true
+  })
 })
 
 const addNew = () => {
@@ -87,6 +99,14 @@ const addNew = () => {
 .add-btn { background: #4ADE80; color: #08203a; border: 0; font-weight: 600; border-radius: 999px; padding: 0.42rem 0.9rem; box-shadow: 0 6px 18px rgba(10,20,30,0.06); }
 .table thead th { background: transparent; color: rgba(15,35,77,0.85); font-weight: 700; border-bottom: 1px solid rgba(15,35,77,0.06); padding: 12px; }
 .table tbody td { padding: 12px; color: #1f2d47; border-bottom: 1px solid rgba(15,35,77,0.04); }
+
+.add-btn:hover,
+.add-btn:focus {
+  background: #4ADE80 !important;
+  color: #08203a !important;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px rgba(10,20,30,0.08);
+}
 
 /* zebra striping: linhas alternadas */
 .table tbody tr:nth-child(odd) {

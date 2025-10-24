@@ -2,26 +2,16 @@ class CommissionsController < ApplicationController
   # GET /commissions.json
   # optional filters: agent_id, start_date, end_date
   def index
-    scope = Commission.includes(:agent, :sale).order(created_at: :desc)
-    scope = scope.where(agent_id: params[:agent_id]) if params[:agent_id].present?
+    only_sold = Commission.joins(sale: :property).where(properties: { status: "sold" })
+    comissions = only_sold.joins(:agent).order(created_at: :desc)
 
-    if params[:start_date].present?
-      scope = scope.where('created_at >= ?', params[:start_date].to_date.beginning_of_day)
-    end
-    if params[:end_date].present?
-      scope = scope.where('created_at <= ?', params[:end_date].to_date.end_of_day)
-    end
-
-    render json: scope.map { |c|
+    render json: comissions.map { |c|
       {
         id: c.id,
         percentage: c.percentage.to_f,
-        value: c.value.to_f,
-        paid: c.paid,
-        paid_at: c.paid_at,
-        created_at: c.created_at,
-        agent: { id: c.agent_id, name: c.agent&.name || c.agent&.email },
-        sale: c.sale ? { id: c.sale.id, sale_price: c.sale.sale_price.to_f, sale_date: c.sale.sale_date } : nil
+        value: c.sale&.sale_price,
+        agent_name: c.agent&.name,
+        sale_name: c.sale.property&.title
       }
     }
   end
