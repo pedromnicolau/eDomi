@@ -4,7 +4,7 @@
       <div class="row align-items-center">
         <div class="col-md-4 mb-2 mb-md-0">
           <div class="logo d-flex align-items-center gap-2">
-            <img :src="logoSrc" class="logo-mark" alt="eDomi" />
+            <img :src="logoSrc" alt="eDomi" />
             <div>
               <div class="fw-bold">eDomi</div>
               <div class="small">Imobiliária • Tecnologia • Confiança</div>
@@ -43,10 +43,9 @@ const logoSrc = '/icon.png'
 }
 
 .logo-mark {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: 8px;
-  background: linear-gradient(135deg,#1A2E66 0%, #4ADE80 100%);
   display: inline-block;
 }
 

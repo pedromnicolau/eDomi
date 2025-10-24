@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_10_21_124136) do
+ActiveRecord::Schema[8.0].define(version: 2025_10_24_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -42,6 +42,26 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_21_124136) do
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
   end
 
+  create_table "addresses", force: :cascade do |t|
+    t.bigint "person_id", null: false
+    t.string "address_line1", null: false
+    t.string "address_line2"
+    t.string "neighborhood"
+    t.string "city", null: false
+    t.string "state", limit: 2, null: false
+    t.string "zip_code"
+    t.string "country", default: "BR", null: false
+    t.decimal "latitude", precision: 10, scale: 6
+    t.decimal "longitude", precision: 10, scale: 6
+    t.integer "address_type", default: 0, null: false
+    t.boolean "primary", default: false, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["person_id", "address_type"], name: "index_addresses_on_person_and_type"
+    t.index ["person_id"], name: "index_addresses_on_person_id"
+    t.check_constraint "char_length(state::text) = 2", name: "addresses_state_len_2"
+  end
+
   create_table "commissions", force: :cascade do |t|
     t.bigint "sale_id", null: false
     t.bigint "agent_id", null: false
@@ -66,6 +86,20 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_21_124136) do
     t.datetime "updated_at", null: false
     t.index ["user_id", "read"], name: "index_notifications_on_user_id_and_read"
     t.index ["user_id"], name: "index_notifications_on_user_id"
+  end
+
+  create_table "people", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "email", null: false
+    t.string "phone"
+    t.date "birthdate"
+    t.integer "status", default: 0, null: false
+    t.integer "preferred_contact_method", default: 0, null: false
+    t.text "notes"
+    t.boolean "active", default: true, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["email"], name: "index_people_on_email", unique: true
   end
 
   create_table "properties", force: :cascade do |t|
@@ -160,6 +194,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_21_124136) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "addresses", "people"
   add_foreign_key "commissions", "sales"
   add_foreign_key "commissions", "users", column: "agent_id"
   add_foreign_key "notifications", "users"

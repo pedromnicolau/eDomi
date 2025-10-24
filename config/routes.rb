@@ -42,4 +42,6 @@ Rails.application.routes.draw do
 
   # users index for admin UI (JSON)
   resources :users, only: [ :index ]
+
+  resources :people, only: [ :index, :show, :create, :update, :destroy ]
 end

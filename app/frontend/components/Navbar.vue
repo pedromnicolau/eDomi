@@ -29,6 +29,7 @@
 
           <div v-if="cadastrosOpen" class="cadastros-menu shadow-sm">
             <router-link class="dropdown-item" to="/admin/cadastros/imoveis" @click="closeCadastros">Imóveis</router-link>
+            <router-link class="dropdown-item" to="/admin/cadastros/pessoas" @click="closeCadastros">Pessoas</router-link>
             <router-link class="dropdown-item" to="/admin/cadastros/usuarios" @click="closeCadastros">Usuários</router-link>
             <router-link class="dropdown-item" to="/admin/cadastros/vendas" @click="closeCadastros">Vendas</router-link>
             <router-link class="dropdown-item" to="/admin/cadastros/comissoes" @click="closeCadastros">Comissões</router-link>
