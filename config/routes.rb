@@ -21,7 +21,8 @@ Rails.application.routes.draw do
 
   get "*path", to: "spa#index", constraints: ->(req) { req.format.html? }
 
-  resources :notifications, only: [:index] do
+  # rotas existentes
+  resources :notifications, only: [ :index ] do
     member do
       patch :mark_as_read
     end
@@ -29,4 +30,16 @@ Rails.application.routes.draw do
   resources :properties
   resources :visits, only: [ :create, :index ]
   get "/current_user", to: "users#current"
+
+  # adicionadas: endpoints JSON utilizados pelo frontend
+  resources :agents, only: [ :index ]            # GET /agents(.json) => lista de corretores
+  resources :sales, only: [ :index ]             # GET /sales(.json) => lista de vendas (imóveis vendidos)
+  resources :commissions, only: [ :index, :create ] do
+    collection do
+      get :report                              # GET /commissions/report(.json)
+    end
+  end
+
+  # users index for admin UI (JSON)
+  resources :users, only: [ :index ]
 end

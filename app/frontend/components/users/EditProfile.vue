@@ -15,6 +15,22 @@
             <input name="user[email]" v-model="email" type="email" class="form-control" required />
           </div>
 
+          <hr class="my-4">
+
+          <div class="mb-3">
+            <label class="form-label">Nova senha</label>
+            <input name="user[password]" v-model="newPassword" type="password" class="form-control" minlength="6" />
+            <div class="form-text small">Deixe em branco se não quiser alterar a senha. Mínimo 6 caracteres.</div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Confirme a nova senha</label>
+            <input name="user[password_confirmation]" v-model="newPasswordConfirmation" type="password" class="form-control" minlength="6" />
+            <div v-if="mismatch" class="text-danger small mt-1">As senhas não coincidem.</div>
+          </div>
+
+          <hr class="my-4">
+
           <div class="mb-3">
             <label class="form-label">Senha atual (confirmação)</label>
             <input name="user[current_password]" v-model="currentPassword" type="password" class="form-control" required />
@@ -22,7 +38,7 @@
           </div>
 
           <div class="d-grid mb-2">
-            <button type="submit" class="btn" style="background:#1A2E66; color:#fff;">Salvar alterações</button>
+            <button type="submit" class="btn" :disabled="mismatch" style="background:#1A2E66; color:#fff;">Salvar alterações</button>
           </div>
 
           <div v-if="formError" class="text-danger small mb-2">{{ formError }}</div>
@@ -31,7 +47,7 @@
 
         <hr/>
         <div class="text-center small">
-          <a href="/users/edit">Cancelar</a>
+          <a href="/">Cancelar</a>
         </div>
       </div>
     </div>
@@ -39,13 +55,21 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 
 const csrf = ref(document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '')
 const name = ref('')
 const email = ref('')
 const currentPassword = ref('')
 const user = ref(null)
+
+// novos campos de senha
+const newPassword = ref('')
+const newPasswordConfirmation = ref('')
+
+const mismatch = computed(() =>
+  newPassword.value.length > 0 && newPasswordConfirmation.value.length > 0 && (newPassword.value !== newPasswordConfirmation.value)
+)
 
 const formError = ref('')
 const formSuccess = ref('')
@@ -76,7 +100,31 @@ const submitForm = async () => {
     return
   }
 
+  // validações de senha nova (se fornecida)
+  if (newPassword.value && newPassword.value.length < 6) {
+    formError.value = 'A nova senha deve ter no mínimo 6 caracteres.'
+    return
+  }
+
+  if (mismatch.value) {
+    formError.value = 'As novas senhas não coincidem.'
+    return
+  }
+
   try {
+    // monta payload incluindo senha se informada
+    const payload = {
+      user: {
+        name: name.value,
+        email: email.value,
+        current_password: currentPassword.value
+      }
+    }
+    if (newPassword.value) {
+      payload.user.password = newPassword.value
+      payload.user.password_confirmation = newPasswordConfirmation.value
+    }
+
     const res = await fetch('/users', {
       method: 'PUT',
       headers: {
@@ -84,32 +132,28 @@ const submitForm = async () => {
         'X-CSRF-Token': csrf.value
       },
       credentials: 'same-origin',
-      body: JSON.stringify({
-        user: {
-          name: name.value,
-          email: email.value,
-          current_password: currentPassword.value
-        }
-      })
-    })
+      body: JSON.stringify(payload)
+     })
 
-    const data = await res.json().catch(() => null)
+     const data = await res.json().catch(() => null)
 
-    if (res.ok && data) {
-      formSuccess.value = 'Perfil atualizado com sucesso.'
-      currentPassword.value = ''
-      // atualiza navbar
-      if (user.value) {
-        user.value.name = data.name
-        user.value.email = data.email
-      }
-    } else {
-      formError.value = (data && data.error) || 'Falha ao atualizar perfil.'
-    }
+     if (res.ok && data) {
+       formSuccess.value = 'Perfil atualizado com sucesso.'
+       currentPassword.value = ''
+       newPassword.value = ''
+       newPasswordConfirmation.value = ''
+       // atualiza navbar
+       if (user.value) {
+         user.value.name = data.name
+         user.value.email = data.email
+       }
+     } else {
+       formError.value = (data && data.error) || 'Falha ao atualizar perfil.'
+     }
 
-  } catch (e) {
-    formError.value = e.message || 'Erro ao atualizar perfil.'
-  }
+   } catch (e) {
+     formError.value = e.message || 'Erro ao atualizar perfil.'
+   }
 }
 </script>
 

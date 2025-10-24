@@ -13,6 +13,7 @@ import ChangePassword from '@/components/users/ChangePassword.vue'
 import CalendarView from '@/components/CalendarView.vue'
 import Privacy from '@/components/Privacy.vue'
 import Terms from '@/components/Terms.vue'
+import UsersAdmin from '@/components/admin/UsersAdmin.vue'
 
 const routes = [
   { path: '/', name: 'home', component: PropertiesList },
@@ -29,7 +30,10 @@ const routes = [
   { path: '/users/password/change', name: 'user-password-change', component: ChangePassword },
   { path: '/calendar', name: 'calendar', component: CalendarView },
   { path: '/privacy', name: 'privacy', component: Privacy },
-  { path: '/terms', name: 'terms', component: Terms }
+  { path: '/terms', name: 'terms', component: Terms },
+
+  // Admin users
+  { path: '/admin/users', name: 'admin-users', component: UsersAdmin }
 ]
 
 const router = createRouter({

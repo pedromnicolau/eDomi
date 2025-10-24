@@ -75,7 +75,6 @@
 
               <div v-if="dropdownOpen" class="dropdown-menu-custom shadow-sm">
                 <a class="dropdown-item" href="/users/edit">Editar perfil</a>
-                <router-link class="dropdown-item" to="/users/password/change">Alterar senha</router-link>
                 <div class="dropdown-divider"></div>
                 <button class="dropdown-item text-danger" @click="logout" type="button">Sair</button>
               </div>
@@ -131,6 +130,20 @@ const fetchCurrent = async () => {
     canCreate.value = false
   }
 }
+
+// computed helper para checar admin (lida com string/int)
+const isAdmin = computed(() => {
+  if (!user.value) return false
+  const r = user.value.role
+  return r === 'admin' || r === '2' || r === 2
+})
+
+// novo: isAgent
+const isAgent = computed(() => {
+  if (!user.value) return false
+  const r = user.value.role
+  return r === 'agent' || r === '1' || r === 1
+})
 
 // no fetchNotifications
 const fetchNotifications = async () => {
@@ -200,10 +213,86 @@ onMounted(async () => {
   } catch (e) {
     user.value = null
   }
+
+  // liga listener para fechar dropdowns ao clicar fora
+  document.addEventListener('click', onDocumentClick)
+
+  // processa alertas já presentes e observa novos
+  processExistingAlerts()
+  startObservingAlerts()
 })
+
+const alertObserver = ref(null)
+const pendingTimeouts = []
+
+const scheduleAutoDismiss = (el) => {
+  try {
+    if (!el || el.dataset?.autodismissed) return
+    // respeita flag para não auto-fechar
+    if (el.dataset && el.dataset.autoclose === 'false') return
+    if (el.classList && el.classList.contains('no-autoclose')) return
+
+    el.dataset.autodismissed = '1'
+
+    const timeoutId = setTimeout(() => {
+      // tenta usar botão de fechar nativo (Bootstrap 5 usa .btn-close)
+      const closeBtn = el.querySelector('.btn-close, button.close')
+      if (closeBtn) {
+        try { closeBtn.click() } catch (e) { /* fallback abaixo */ }
+      } else {
+        // anima e remove
+        el.style.transition = 'opacity 360ms ease'
+        el.style.opacity = '0'
+        setTimeout(() => {
+          if (el.parentNode) el.parentNode.removeChild(el)
+        }, 380)
+      }
+    }, 5000)
+
+    pendingTimeouts.push(timeoutId)
+  } catch (e) {
+    // não bloquear a aplicação por erro de UI
+    // console.debug(e)
+  }
+}
+
+const processExistingAlerts = () => {
+  try {
+    const list = Array.from(document.querySelectorAll('.alert[role="alert"], .alert'))
+    list.forEach(el => scheduleAutoDismiss(el))
+  } catch (e) {}
+}
+
+const startObservingAlerts = () => {
+  if (typeof MutationObserver === 'undefined') return
+  alertObserver.value = new MutationObserver((mutations) => {
+    mutations.forEach(m => {
+      m.addedNodes && m.addedNodes.forEach(node => {
+        if (!node || node.nodeType !== 1) return
+        const el = node
+        if (el.matches && (el.matches('.alert') || el.matches('[role="alert"]'))) {
+          scheduleAutoDismiss(el)
+        }
+        // também busca alerts dentro do nó adicionado
+        const inner = el.querySelectorAll && el.querySelectorAll('.alert[role="alert"], .alert')
+        if (inner && inner.length) Array.from(inner).forEach(i => scheduleAutoDismiss(i))
+      })
+    })
+  })
+  alertObserver.value.observe(document.body, { childList: true, subtree: true })
+}
 
 onBeforeUnmount(() => {
   document.removeEventListener('click', onDocumentClick)
+  if (alertObserver.value) {
+    try { alertObserver.value.disconnect() } catch (e) {}
+    alertObserver.value = null
+  }
+  // limpa timeouts pendentes
+  pendingTimeouts.forEach(id => {
+    try { clearTimeout(id) } catch (e) {}
+  })
+  pendingTimeouts.length = 0
 })
 
 const logout = async () => {
@@ -361,6 +450,9 @@ watch(user, async (v) => {
   box-shadow: 0 6px 18px rgba(0,0,0,0.12);
   padding: 0.25rem 0;
   overflow: hidden;
+
+  /* garante que menus custom fiquem sempre acima de outros elementos da página */
+  z-index: 4000;
 }
 
 /* notifications dropdown: garantir que fique acima de outros componentes */

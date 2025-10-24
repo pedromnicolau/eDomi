@@ -1,0 +1,20 @@
+pt-BR:
+  errors:
+    messages:
+      too_short: "é muito curto (mínimo %{count} caracteres)"
+      invalid: "é inválido"
+    attributes:
+      email:
+        invalid: "O email informado é inválido."
+  activerecord:
+    errors:
+      messages:
+        invalid: "é inválido"
+        too_short: "é muito curto (mínimo %{count} caracteres)"
+      models:
+        user:
+          attributes:
+            password:
+              too_short: "é muito curto (mínimo %{count} caracteres)"
+            email:
+              invalid: "O email informado é inválido."
