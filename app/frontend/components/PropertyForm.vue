@@ -1,11 +1,11 @@
 <template>
   <div class="property-form-container py-4">
     <div class="form-card shadow-sm rounded-4 p-4 bg-white mx-auto">
-      <h1 class="h5 fw-semibold mb-4 text-primary text-center">
+      <h1 class="h5 fw-semibold mb-4 text-primary">
         {{ isEdit ? 'Editar Imóvel' : 'Novo Imóvel' }}
       </h1>
 
-      <div v-if="loading" class="text-center py-5 text-muted">Carregando...</div>
+      <div v-if="loading" class="py-5 text-muted">Carregando...</div>
       <div v-else>
         <div v-if="error" class="alert alert-danger">{{ error }}</div>
 
@@ -153,7 +153,7 @@
             </div>
           </div>
 
-          <div class="text-center mt-4">
+          <div class="mt-4">
             <button class="btn btn-primary px-5 py-2 fw-semibold shadow-sm" type="submit">
               {{ isEdit ? 'Salvar Alterações' : 'Criar Imóvel' }}
             </button>

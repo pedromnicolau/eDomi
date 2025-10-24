@@ -15,6 +15,13 @@ import Privacy from '@/components/Privacy.vue'
 import Terms from '@/components/Terms.vue'
 import UsersAdmin from '@/components/admin/UsersAdmin.vue'
 
+// novos components de cadastros
+import AdminCadastrosProperties from '@/components/admin/CadastrosProperties.vue'
+import AdminCadastrosUsers from '@/components/admin/CadastrosUsers.vue'
+import AdminCadastrosSales from '@/components/admin/CadastrosSales.vue'
+import AdminCadastrosCommissions from '@/components/admin/CadastrosCommissions.vue'
+import AdminCadastrosVisits from '@/components/admin/CadastrosVisits.vue'
+
 const routes = [
   { path: '/', name: 'home', component: PropertiesList },
   { path: '/about', name: 'about', component: About },
@@ -31,6 +38,13 @@ const routes = [
   { path: '/calendar', name: 'calendar', component: CalendarView },
   { path: '/privacy', name: 'privacy', component: Privacy },
   { path: '/terms', name: 'terms', component: Terms },
+
+  // Admin cadastros (visíveis apenas a admins)
+  { path: '/admin/cadastros/imoveis', name: 'admin-cadastros-imoveis', component: AdminCadastrosProperties, meta: { requiresAdmin: true } },
+  { path: '/admin/cadastros/usuarios', name: 'admin-cadastros-usuarios', component: AdminCadastrosUsers, meta: { requiresAdmin: true } },
+  { path: '/admin/cadastros/vendas', name: 'admin-cadastros-vendas', component: AdminCadastrosSales, meta: { requiresAdmin: true } },
+  { path: '/admin/cadastros/comissoes', name: 'admin-cadastros-comissoes', component: AdminCadastrosCommissions, meta: { requiresAdmin: true } },
+  { path: '/admin/cadastros/visitas', name: 'admin-cadastros-visitas', component: AdminCadastrosVisits, meta: { requiresAdmin: true } },
 
   // Admin users
   { path: '/admin/users', name: 'admin-users', component: UsersAdmin }

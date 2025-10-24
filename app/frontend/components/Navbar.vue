@@ -14,6 +14,27 @@
         <router-link to="/" class="btn btn-new mx-2">Imóveis</router-link>
         <router-link to="/about" class="btn btn-new mx-2">Sobre</router-link>
         <router-link to="/contact" class="btn btn-new mx-2">Contato</router-link>
+
+        <!-- Cadastros dropdown (apenas admin) - controlado por Vue -->
+        <div v-if="isAdmin" class="nav-item mx-2 admin-items" ref="cadastrosRef">
+          <button
+            class="btn btn-new dropdown-toggle"
+            type="button"
+            @click="toggleCadastros"
+            :aria-expanded="cadastrosOpen"
+            aria-haspopup="true"
+          >
+            Cadastros
+          </button>
+
+          <div v-if="cadastrosOpen" class="cadastros-menu shadow-sm">
+            <router-link class="dropdown-item" to="/admin/cadastros/imoveis" @click="closeCadastros">Imóveis</router-link>
+            <router-link class="dropdown-item" to="/admin/cadastros/usuarios" @click="closeCadastros">Usuários</router-link>
+            <router-link class="dropdown-item" to="/admin/cadastros/vendas" @click="closeCadastros">Vendas</router-link>
+            <router-link class="dropdown-item" to="/admin/cadastros/comissoes" @click="closeCadastros">Comissões</router-link>
+            <router-link class="dropdown-item" to="/admin/cadastros/visitas" @click="closeCadastros">Visitas</router-link>
+          </div>
+        </div>
       </div>
 
       <!-- ações (direita): notificações + auth -->
@@ -112,6 +133,10 @@ const userDropdownRef = ref(null)
 const notificationsOpen = ref(false)
 const notificationsRef = ref(null)
 
+/* novo: cadastros dropdown state e ref */
+const cadastrosOpen = ref(false)
+const cadastrosRef = ref(null)
+
 const getCsrf = () => document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
 
 const fetchCurrent = async () => {
@@ -195,12 +220,21 @@ const toggleNotifications = () => {
   notificationsOpen.value = !notificationsOpen.value
 }
 
+const toggleCadastros = () => {
+  cadastrosOpen.value = !cadastrosOpen.value
+}
+const closeCadastros = () => { cadastrosOpen.value = false }
+
+/* atualiza onDocumentClick para fechar cadastros se clicar fora */
 const onDocumentClick = (e) => {
   if (dropdownOpen.value && userDropdownRef.value && !userDropdownRef.value.contains(e.target)) {
     dropdownOpen.value = false
   }
   if (notificationsOpen.value && notificationsRef.value && !notificationsRef.value.contains(e.target)) {
     notificationsOpen.value = false
+  }
+  if (cadastrosOpen.value && cadastrosRef.value && !cadastrosRef.value.contains(e.target)) {
+    cadastrosOpen.value = false
   }
 }
 
@@ -524,5 +558,45 @@ watch(user, async (v) => {
   .logo-text { font-size: 0.95rem; }
   .logo-mark { width: 28px; height: 28px; }
   .user-dropdown .small { display: none !important; }
+}
+
+/* melhora visual do botão dentro do dropdown (mantém estilo do theme) */
+.dropdown-menu .dropdown-item {
+  color: #333;
+}
+.dropdown-menu .dropdown-item:hover {
+  background: #f8f9fa;
+}
+
+/* menu custom para cadastros (mesma sintaxe visual dos menus customizados) */
+.cadastros-menu {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 6px);
+  min-width: 220px;
+  background: #ffffff;
+  border-radius: 0.35rem;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.12);
+  padding: 0.25rem 0;
+  z-index: 3000;
+}
+
+/* itens do menu */
+.cadastros-menu .dropdown-item {
+  display: block;
+  padding: 0.5rem 1rem;
+  color: #333;
+  text-decoration: none;
+}
+.cadastros-menu .dropdown-item:hover {
+  background: #f8f9fa;
+  color: #000;
+}
+
+/* adaptações para posicionamento do botão dropdown */
+.nav-item.mx-2 { position: relative; }
+
+.admin-items {
+  margin-left: 4rem !important;
 }
 </style>
