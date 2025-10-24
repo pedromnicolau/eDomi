@@ -75,7 +75,7 @@
       </div>
 
       <div class="col-12 col-md-4 d-flex gap-2">
-        <button class="btn btn-sm btn-primary" @click="apply">Aplicar</button>
+        <button class="btn btn-sm btn-apply" @click="apply">Aplicar</button>
         <button class="btn btn-sm btn-outline-secondary" @click="reset">Limpar</button>
       </div>
     </div>
@@ -116,4 +116,22 @@ const reset = () => {
 <style scoped>
 .filter-card { background: #fff; border-radius: .5rem; box-shadow: 0 6px 18px rgba(10,20,60,0.06); }
 .form-label.small { font-size: .75rem; color: #333; }
+
+/* novo: botão de aplicar com cor #4ADE80 e animação grow; mantém cor no hover */
+.btn-apply {
+  background: #4ADE80;       /* verde */
+  color: #07203a;            /* texto escuro */
+  border: 1px solid rgba(0,0,0,0.06);
+  box-shadow: 0 6px 18px rgba(10,20,60,0.06);
+  transition: transform .16s cubic-bezier(.2,.8,.2,1), box-shadow .16s ease;
+  will-change: transform;
+}
+.btn-apply:hover {
+  transform: scale(1.06);
+  box-shadow: 0 18px 40px rgba(10,20,60,0.12);
+  /* mantemos a mesma cor de fundo — não altere background aqui */
+}
+.btn-apply:active {
+  transform: scale(0.98);
+}
 </style>

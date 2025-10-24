@@ -7,7 +7,7 @@
     <!-- novo botão 'Novo imóvel' posicionado antes do título -->
     <div class="d-flex justify-content-between align-items-center mb-3">
       <div>
-        <router-link v-if="canCreate" to="/properties/new" class="btn btn-primary me-2">Novo imóvel</router-link>
+        <router-link v-if="canCreate" to="/properties/new" class="btn btn-apply me-2">Novo imóvel</router-link>
       </div>
     </div>
 
@@ -263,6 +263,25 @@ const filteredProperties = computed(() => {
   opacity: 0.8;
 }
 .dot.active { background: #1A2E66; opacity: 1; }
+
+/* repetir estilo localmente para manter scoped */
+/* Novo imóvel agora em azul #1A2E66 com animação grow */
+.btn-apply {
+  background: #1A2E66; /* azul escuro */
+  color: #ffffff;      /* texto branco */
+  border: 1px solid rgba(0,0,0,0.06);
+  box-shadow: 0 6px 18px rgba(10,20,60,0.06);
+  transition: transform .16s cubic-bezier(.2,.8,.2,1), box-shadow .16s ease;
+  will-change: transform;
+}
+.btn-apply:hover {
+  transform: scale(1.06);
+  box-shadow: 0 18px 40px rgba(10,20,60,0.12);
+  /* não alteramos background para evitar ficar branco no hover */
+}
+.btn-apply:active {
+  transform: scale(0.98);
+}
 
 /* responsive adjustments */
 @media (max-width: 576px) {

@@ -70,7 +70,7 @@
                   <path d="M12 12c2.761 0 5-2.239 5-5s-2.239-5-5-5-5 2.239-5 5 2.239 5 5 5z" fill="#fff"/>
                   <path d="M4 20c0-4.418 3.582-8 8-8s8 3.582 8 8" stroke="#fff" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
-                <span class="small text-white d-none d-md-inline">{{ user && (user.name || user.email) }}</span>
+                <span class="d-none d-md-inline">{{ user.name || user.email }}</span>
               </button>
 
               <div v-if="dropdownOpen" class="dropdown-menu-custom shadow-sm">
@@ -99,7 +99,7 @@ const user = ref(null)
 const canCreate = ref(false)
 
 /* novo: src dinâmico para evitar resolução estática pelo Vite */
-const logoSrc = '/icon.png'
+const logoSrc = '/logo_2.png'
 
 const notifications = ref([])
 const loadingNotifications = ref(false)
@@ -389,15 +389,10 @@ watch(user, async (v) => {
 
 /* logo */
 .logo-mark {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  display: inline-block;
-  object-fit: contain;
-  flex-shrink: 0;
-  margin-right: 0.5rem;
-  box-shadow: 0 4px 10px rgba(26,46,102,0.12);
-  background: transparent;
+  width: 80px;
+  height: auto;
+  padding-top: 4px;
+  padding-bottom: 4px;
 }
 
 .logo-text {
