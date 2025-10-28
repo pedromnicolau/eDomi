@@ -154,8 +154,18 @@
           </div>
 
           <div class="mt-4">
-            <button class="btn btn-primary px-5 py-2 fw-semibold shadow-sm" type="submit">
-              {{ isEdit ? 'Salvar Alterações' : 'Criar Imóvel' }}
+            <button
+              class="btn btn-primary px-5 py-2 fw-semibold shadow-sm"
+              type="submit"
+              :disabled="submitting"
+            >
+              <span v-if="submitting" class="d-inline-flex align-items-center">
+                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                Salvando...
+              </span>
+              <span v-else>
+                {{ isEdit ? 'Salvar Alterações' : 'Criar Imóvel' }}
+              </span>
             </button>
             <router-link to="/" class="btn btn-outline-secondary ms-2 px-4 py-2">Cancelar</router-link>
           </div>
@@ -197,6 +207,10 @@ const form = ref({
 
 const loading = ref(false)
 const error = ref(null)
+
+// novo estado para submissão
+const submitting = ref(false)
+const success = ref(null)
 
 const files = ref([])
 const previewUrls = ref([])
@@ -293,6 +307,7 @@ const markRemoveExisting = (blobId) => {
 
 const submit = async () => {
   error.value = null
+  success.value = null
 
   // validacoes simples
   if (!form.value.title || !form.value.price || !form.value.property_type || !form.value.address || !form.value.city || !form.value.state) {
@@ -300,6 +315,7 @@ const submit = async () => {
     return
   }
 
+  submitting.value = true
   try {
     const method = isEdit ? 'PATCH' : 'POST'
     const url = isEdit ? `/properties/${id}.json` : '/properties.json'
@@ -343,10 +359,12 @@ const submit = async () => {
       throw new Error(txt || 'Erro ao salvar')
     }
 
-    // sucesso
-    router.push({ name: 'home' })
+    // sucesso — navegar para raiz da SPA
+    router.push({ path: '/' })
   } catch (e) {
     error.value = e.message || String(e)
+  } finally {
+    submitting.value = false
   }
 }
 </script>

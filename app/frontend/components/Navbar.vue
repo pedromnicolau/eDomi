@@ -264,6 +264,19 @@ const pendingTimeouts = []
 const scheduleAutoDismiss = (el) => {
   try {
     if (!el || el.dataset?.autodismissed) return
+
+    // NÃO auto-fechar alerts que estejam dentro de um formulário ou de um card de formulário.
+    // cobre casos onde o alert é irmão do <form> (ex. dentro de .form-card) — evita remoção de mensagens de validação
+    if (
+      (el.closest && el.closest('form')) ||
+      (el.closest && el.closest('.form-card')) ||
+      (el.closest && el.closest('.property-form-container')) ||
+      (el.closest && el.closest('[role="form"]')) ||
+      el.dataset && el.dataset.persistAlert === 'true'
+    ) {
+      return
+    }
+
     // respeita flag para não auto-fechar
     if (el.dataset && el.dataset.autoclose === 'false') return
     if (el.classList && el.classList.contains('no-autoclose')) return
@@ -288,7 +301,6 @@ const scheduleAutoDismiss = (el) => {
     pendingTimeouts.push(timeoutId)
   } catch (e) {
     // não bloquear a aplicação por erro de UI
-    // console.debug(e)
   }
 }
 

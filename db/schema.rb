@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_10_24_000000) do
+ActiveRecord::Schema[8.0].define(version: 2025_10_28_114310) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -43,7 +43,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_24_000000) do
   end
 
   create_table "addresses", force: :cascade do |t|
-    t.bigint "person_id", null: false
     t.string "address_line1", null: false
     t.string "address_line2"
     t.string "neighborhood"
@@ -57,8 +56,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_24_000000) do
     t.boolean "primary", default: false, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["person_id", "address_type"], name: "index_addresses_on_person_and_type"
-    t.index ["person_id"], name: "index_addresses_on_person_id"
+    t.string "addressable_type", null: false
+    t.bigint "addressable_id", null: false
+    t.index ["addressable_type", "addressable_id"], name: "index_addresses_on_addressable"
     t.check_constraint "char_length(state::text) = 2", name: "addresses_state_len_2"
   end
 
@@ -75,6 +75,17 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_24_000000) do
     t.index ["sale_id"], name: "index_commissions_on_sale_id"
     t.check_constraint "percentage >= 0::numeric AND percentage <= 100::numeric", name: "commissions_percentage_range"
     t.check_constraint "value >= 0::numeric", name: "commissions_value_non_negative"
+  end
+
+  create_table "companies", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "cnpj"
+    t.string "email"
+    t.string "phone"
+    t.text "description"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["cnpj"], name: "index_companies_on_cnpj", unique: true
   end
 
   create_table "notifications", force: :cascade do |t|
@@ -115,25 +126,17 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_24_000000) do
     t.decimal "condominium_fee", precision: 10, scale: 2, default: "0.0", null: false
     t.decimal "iptu", precision: 10, scale: 2, default: "0.0", null: false
     t.integer "year_built"
-    t.string "address", null: false
-    t.string "neighborhood"
-    t.string "city", null: false
-    t.string "state", null: false
-    t.string "zip_code"
     t.integer "status", default: 0, null: false
     t.bigint "agent_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["agent_id"], name: "index_properties_on_agent_id"
     t.index ["bedrooms", "bathrooms"], name: "index_properties_on_bedrooms_and_bathrooms"
-    t.index ["city"], name: "index_properties_on_city"
-    t.index ["neighborhood"], name: "index_properties_on_neighborhood"
     t.index ["price"], name: "index_properties_on_price"
     t.index ["property_type"], name: "index_properties_on_property_type"
     t.index ["status"], name: "index_properties_on_status"
     t.check_constraint "bathrooms >= 0", name: "properties_bathrooms_non_negative"
     t.check_constraint "bedrooms >= 0", name: "properties_bedrooms_non_negative"
-    t.check_constraint "char_length(state::text) = 2", name: "properties_state_len_2"
     t.check_constraint "condominium_fee >= 0::numeric", name: "properties_condo_fee_non_negative"
     t.check_constraint "iptu >= 0::numeric", name: "properties_iptu_non_negative"
     t.check_constraint "parking_spaces >= 0", name: "properties_parking_non_negative"
@@ -194,7 +197,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_24_000000) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
-  add_foreign_key "addresses", "people"
   add_foreign_key "commissions", "sales"
   add_foreign_key "commissions", "users", column: "agent_id"
   add_foreign_key "notifications", "users"
