@@ -22,6 +22,7 @@ import AdminCadastrosSales from '@/components/admin/CadastrosSales.vue'
 import AdminCadastrosCommissions from '@/components/admin/CadastrosCommissions.vue'
 import AdminCadastrosVisits from '@/components/admin/CadastrosVisits.vue'
 import AdminCadastrosPeople from '@/components/admin/CadastrosPeople.vue'
+import AdminSalesList from '@/components/admin/SalesList.vue'
 
 const routes = [
   { path: '/', name: 'home', component: PropertiesList },
@@ -47,6 +48,7 @@ const routes = [
   { path: '/admin/cadastros/comissoes', name: 'admin-cadastros-comissoes', component: AdminCadastrosCommissions, meta: { requiresAdmin: true } },
   { path: '/admin/cadastros/visitas', name: 'admin-cadastros-visitas', component: AdminCadastrosVisits, meta: { requiresAdmin: true } },
   { path: '/admin/cadastros/pessoas', name: 'admin-cadastros-pessoas', component: AdminCadastrosPeople, meta: { requiresAdmin: true } },
+  { path: '/admin/:id/vendas', name: 'sales-list', component: AdminSalesList, props: true, meta: { requiresAdmin: true } },
 
   // Admin users
   { path: '/admin/users', name: 'admin-users', component: UsersAdmin }

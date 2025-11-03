@@ -111,11 +111,13 @@ class PropertiesController < ApplicationController
 
   # permit uploaded_photos and remove_photo_blob_ids as array
   def property_params
-    params.require(:property).permit(:title, :description, :price,
+    params.require(:property).permit(
+      :title, :description, :price,
       :property_type, :area, :bedrooms, :bathrooms, :parking_spaces,
-      :furnished, :condominium_fee, :iptu, :year_built, # property attrs
-      :address, :neighborhood, :city, :state, :zip_code, :country, # address-related (address -> address_line1)
+      :furnished, :condominium_fee, :iptu, :year_built,
+      :address, :neighborhood, :city, :state, :zip_code, :country,
       :status,
+      :agent_id,
       uploaded_photos: [], remove_photo_blob_ids: []
     )
   end

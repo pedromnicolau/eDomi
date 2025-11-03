@@ -2,16 +2,14 @@ class CommissionsController < ApplicationController
   # GET /commissions.json
   # optional filters: agent_id, start_date, end_date
   def index
-    only_sold = Commission.joins(sale: :property).where(properties: { status: "sold" })
-    comissions = only_sold.joins(:agent).order(created_at: :desc)
+    comissions = Commission.all
 
     render json: comissions.map { |c|
       {
         id: c.id,
         percentage: c.percentage.to_f,
-        value: c.sale&.sale_price,
-        agent_name: c.agent&.name,
-        sale_name: c.sale.property&.title
+        value: c.value,
+        agent_name: c.agent&.name
       }
     }
   end

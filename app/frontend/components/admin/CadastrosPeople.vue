@@ -112,7 +112,7 @@ const filtered = computed(() => {
 })
 
 const addNew = () => {
-  router.push({ name: 'people-new' }).catch(()=>{})
+  router.push({ name: 'sign-up' }).catch(()=>{})
 }
 
 // menu contextual

@@ -20,7 +20,6 @@
            <thead>
              <tr>
                <th>Corretor</th>
-               <th>Venda</th>
                <th>Percentual</th>
                <th>Valor</th>
              </tr>
@@ -28,9 +27,9 @@
            <tbody>
              <tr v-for="c in filtered" :key="c.id">
                <td>{{ c.agent_name || '-' }}</td>
-               <td>{{ c.sale_name || '-' }}</td>
                <td>{{ c.percentage ? c.percentage + '%' : '-' }}</td>
                <td>{{ c.value ? formatCurrency(c.value) : '-' }}</td>
+               <td><router-link :to="{ name: 'sales-list', params: { id: c.id } }" class="btn btn-sm btn-outline-primary me-2">Vendas</router-link></td>
              </tr>
            </tbody>
           </table>
