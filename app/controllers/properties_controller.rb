@@ -7,29 +7,45 @@ class PropertiesController < ApplicationController
   def index
     @properties = Property
                     .where(status: :available)
-                    .includes(:agent, photos_attachments: :blob)
+                    .includes(:agent, :address, photos_attachments: :blob)
                     .order(created_at: :desc)
-    render json: @properties.as_json(
-      only: [
-        :id, :title, :description, :price, :city, :state,
-        :bedrooms, :bathrooms, :parking_spaces, :furnished,
-        :condominium_fee, :iptu, :address, :property_type,
-        :status, :area, :year_built, :agent_id,
-        :neighborhood, :zip_code
-      ],
-      methods: [ :agent_name, :photos_urls, :photos_data ]
-    )
+
+    render json: @properties.map { |p|
+      p.as_json(
+        only: [
+          :id, :title, :description, :price,
+          :bedrooms, :bathrooms, :parking_spaces, :furnished,
+          :condominium_fee, :iptu, :address, :property_type,
+          :status, :area, :year_built, :agent_id,
+          :neighborhood, :zip_code
+        ],
+        methods: [ :agent_name, :photos_urls, :photos_data ]
+      ).merge(
+        address: p.address&.address_line1,
+        neighborhood: p.address&.neighborhood,
+        city: p.address&.city,
+        state: p.address&.state,
+        zip_code: p.address&.zip_code,
+        country: p.address&.country
+      )
+    }
   end
 
   def show
     render json: @property.as_json(
       only: [
-        :id, :title, :description, :price, :city, :state,
+        :id, :title, :description, :price,
         :bedrooms, :bathrooms, :parking_spaces, :furnished,
-        :condominium_fee, :iptu, :address, :property_type, :status, :area, :year_built, :agent_id,
-        :neighborhood, :zip_code
+        :condominium_fee, :iptu, :property_type, :status, :area, :year_built, :agent_id
       ],
       methods: [ :agent_name, :photos_urls, :photos_data ]
+    ).merge(
+      address: @property.address&.address_line1,
+      neighborhood: @property.address&.neighborhood,
+      city: @property.address&.city,
+      state: @property.address&.state,
+      zip_code: @property.address&.zip_code,
+      country: @property.address&.country
     )
   end
 

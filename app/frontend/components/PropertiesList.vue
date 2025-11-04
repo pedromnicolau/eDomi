@@ -198,7 +198,7 @@ const filteredProperties = computed(() => {
     // cidade
     if (f.city && (!p.city || !String(p.city).toLowerCase().includes(String(f.city).toLowerCase()))) return false
     if (f.state && (!p.state || String(p.state).toLowerCase() !== String(f.state).toLowerCase())) return false
-    if (f.property_type && String(p.property_type) !== String(p.property_type)) return false
+    if (f.property_type && String(p.property_type).toLowerCase() !== String(f.property_type).toLowerCase()) return false
     if (f.bedrooms && Number(p.bedrooms) < Number(f.bedrooms)) return false
     if (f.bathrooms && Number(p.bathrooms) < Number(f.bathrooms)) return false
     if (f.parking_spaces && Number(p.parking_spaces) < Number(f.parking_spaces)) return false
@@ -268,18 +268,25 @@ const filteredProperties = computed(() => {
 /* Novo imóvel agora em azul #1A2E66 com animação grow */
 .btn-apply {
   background: #1A2E66; /* azul escuro */
-  color: #ffffff;      /* texto branco */
-  border: 1px solid rgba(0,0,0,0.06);
-  box-shadow: 0 6px 18px rgba(10,20,60,0.06);
-  transition: transform .16s cubic-bezier(.2,.8,.2,1), box-shadow .16s ease;
+  color: #ffffff !important; /* mantém o texto branco */
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 6px 18px rgba(10, 20, 60, 0.06);
+  transition: transform 0.16s cubic-bezier(.2, .8, .2, 1), box-shadow 0.16s ease;
   will-change: transform;
+  text-decoration: none; /* remove sublinhado do link */
 }
-.btn-apply:hover {
+
+.btn-apply:hover,
+.btn-apply:focus {
+  color: #ffffff !important; /* impede o branco desaparecer */
+  background: #162859; /* tom um pouco mais escuro no hover */
   transform: scale(1.06);
-  box-shadow: 0 18px 40px rgba(10,20,60,0.12);
-  /* não alteramos background para evitar ficar branco no hover */
+  box-shadow: 0 18px 40px rgba(10, 20, 60, 0.12);
 }
+
 .btn-apply:active {
+  color: #ffffff !important;
+  background: #0f1c44; /* ainda mais escuro no clique */
   transform: scale(0.98);
 }
 
