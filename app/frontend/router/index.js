@@ -16,11 +16,11 @@ import Terms from '@/components/Terms.vue'
 import UsersAdmin from '@/components/admin/UsersAdmin.vue'
 
 // novos components de cadastros
-import AdminCadastrosProperties from '@/components/admin/CadastrosProperties.vue'
-import AdminCadastrosUsers from '@/components/admin/CadastrosUsers.vue'
-import AdminCadastrosSales from '@/components/admin/CadastrosSales.vue'
-import AdminCadastrosCommissions from '@/components/admin/CadastrosCommissions.vue'
-import AdminCadastrosVisits from '@/components/admin/CadastrosVisits.vue'
+import AdminRelatoriosProperties from '@/components/admin/RelatoriosProperties.vue'
+import AdminRelatoriosUsers from '@/components/admin/RelatoriosUsers.vue'
+import AdminRelatoriosSales from '@/components/admin/RelatoriosSales.vue'
+import AdminRelatoriosCommissions from '@/components/admin/RelatoriosCommissions.vue'
+import AdminRelatoriosVisits from '@/components/admin/RelatoriosVisits.vue'
 import AdminCadastrosPeople from '@/components/admin/CadastrosPeople.vue'
 import AdminSalesList from '@/components/admin/SalesList.vue'
 
@@ -42,12 +42,12 @@ const routes = [
   { path: '/terms', name: 'terms', component: Terms },
 
   // Admin cadastros (visíveis apenas a admins)
-  { path: '/admin/cadastros/imoveis', name: 'admin-cadastros-imoveis', component: AdminCadastrosProperties, meta: { requiresAdmin: true } },
-  { path: '/admin/cadastros/usuarios', name: 'admin-cadastros-usuarios', component: AdminCadastrosUsers, meta: { requiresAdmin: true } },
-  { path: '/admin/cadastros/vendas', name: 'admin-cadastros-vendas', component: AdminCadastrosSales, meta: { requiresAdmin: true } },
-  { path: '/admin/cadastros/comissoes', name: 'admin-cadastros-comissoes', component: AdminCadastrosCommissions, meta: { requiresAdmin: true } },
-  { path: '/admin/cadastros/visitas', name: 'admin-cadastros-visitas', component: AdminCadastrosVisits, meta: { requiresAdmin: true } },
-  { path: '/admin/cadastros/pessoas', name: 'admin-cadastros-pessoas', component: AdminCadastrosPeople, meta: { requiresAdmin: true } },
+  { path: '/admin/relatorios/imoveis', name: 'admin-relatorios-imoveis', component: AdminRelatoriosProperties, meta: { requiresAdmin: true } },
+  { path: '/admin/relatorios/usuarios', name: 'admin-relatorios-usuarios', component: AdminRelatoriosUsers, meta: { requiresAdmin: true } },
+  { path: '/admin/relatorios/vendas', name: 'admin-relatorios-vendas', component: AdminRelatoriosSales, meta: { requiresAdmin: true } },
+  { path: '/admin/relatorios/comissoes', name: 'admin-relatorios-comissoes', component: AdminRelatoriosCommissions, meta: { requiresAdmin: true } },
+  { path: '/admin/relatorios/visitas', name: 'admin-relatorios-visitas', component: AdminRelatoriosVisits, meta: { requiresAdmin: true } },
+  { path: '/admin/cadastros/pessoas', name: 'admin-relatorios-pessoas', component: AdminCadastrosPeople, meta: { requiresAdmin: true } },
   { path: '/admin/:id/vendas', name: 'sales-list', component: AdminSalesList, props: true, meta: { requiresAdmin: true } },
 
   // Admin users

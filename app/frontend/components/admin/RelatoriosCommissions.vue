@@ -2,17 +2,16 @@
   <div class="admin-panel">
     <div class="container">
       <div class="admin-toolbar d-flex align-items-center mb-3">
-       <h3 class="me-auto">Cadastros — Vendas</h3>
+       <h3 class="me-auto">Relatório — Comissões</h3>
        <div class="d-flex align-items-center">
-          <div class="col-md-6">
-           <input v-model="filterProperty" class="form-control form-control-sm" placeholder="Filtrar por imóvel" />
-          </div>
           <div class="col-md-6">
            <input v-model="filterAgente" class="form-control form-control-sm" placeholder="Filtrar por corretor" />
           </div>
-         <button class="btn add-btn btn-sm" @click="addNew">+</button>
+          <div class="col-md-6">
+           <input v-model="filterSale" class="form-control form-control-sm" placeholder="Filtrar por venda" />
+          </div>
        </div>
-     </div>
+      </div>
 
       <div class="admin-card">
         <div v-if="loading" class="text-muted">Carregando...</div>
@@ -20,16 +19,17 @@
           <table class="table table-sm">
            <thead>
              <tr>
-               <th>Imóvel</th>
                <th>Corretor</th>
+               <th>Percentual</th>
                <th>Valor</th>
              </tr>
            </thead>
            <tbody>
-             <tr v-for="s in filtered" :key="s.id">
-               <td>{{ s.property_title }}</td>
-               <td>{{ s.agent_name }}</td>
-               <td>{{ s.value ? formatCurrency(s.value) : '-' }}</td>
+             <tr v-for="c in filtered" :key="c.id">
+               <td>{{ c.agent_name || '-' }}</td>
+               <td>{{ c.percentage ? c.percentage + '%' : '-' }}</td>
+               <td>{{ c.value ? formatCurrency(c.value) : '-' }}</td>
+               <td><router-link :to="{ name: 'sales-list', params: { id: c.id } }" class="btn btn-sm btn-outline-primary me-2">Vendas</router-link></td>
              </tr>
            </tbody>
           </table>
@@ -46,13 +46,13 @@ const router = useRouter()
 const records = ref([])
 const loading = ref(false)
 const query = ref('')
-const filterProperty = ref('')
 const filterAgente = ref('')
+const filterSale = ref('')
 
 const fetchRecords = async () => {
   loading.value = true
   try {
-    const res = await fetch('/sales.json', { credentials: 'same-origin' })
+    const res = await fetch('/commissions.json', { credentials: 'same-origin' })
     if (res.ok) records.value = await res.json()
     else records.value = []
   } catch (e) { records.value = [] }
@@ -63,20 +63,20 @@ onMounted(fetchRecords)
 
 const filtered = computed(() => {
   const list = records.value || []
-  const p = String(filterProperty.value || '').trim().toLowerCase()
   const a = String(filterAgente.value || '').trim().toLowerCase()
+  const s = String(filterSale.value || '').trim().toLowerCase()
 
   return list.filter(r => {
     // strings: se o filtro estiver vazio, aceita; caso contrário verifica includes
-    if (p && !String(r.property_title || '').toLowerCase().includes(p)) return false
     if (a && !String(r.agent_name || '').toLowerCase().includes(a)) return false
+    if (s && !String(r.sale_name || '').toLowerCase().includes(s)) return false
 
     return true
   })
 })
 
 const addNew = () => {
-  router.push({ path: '/' })
+  router.push({ path: '/commissions/new' }).catch(()=>{ alert('Rota de criação de comissão não implementada') })
 }
 
 const formatCurrency = (v) => {
@@ -105,14 +105,6 @@ const formatCurrency = (v) => {
 }
 .admin-card .table tbody tr:nth-child(even) td {
   background-color: #f6f8fb;
-}
-
-.add-btn:hover,
-.add-btn:focus {
-  background: #4ADE80 !important;
-  color: #08203a !important;
-  transform: translateY(-2px);
-  box-shadow: 0 10px 22px rgba(10,20,30,0.08);
 }
 
 .admin-card .table tbody tr:hover td {

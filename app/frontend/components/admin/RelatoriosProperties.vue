@@ -2,47 +2,22 @@
   <div class="admin-panel">
     <div class="container">
       <div class="admin-toolbar d-flex align-items-center mb-3">
-        <h3 class="me-auto">Cadastros — Imóveis</h3>
-        <div class="d-flex align-items-center">
-          <button class="btn add-btn btn-sm" @click="addNew">+</button>
-        </div>
+        <h3 class="me-auto">Relatório — Imóveis</h3>
       </div>
 
       <!-- CHANGED: múltiplos filtros funcionais -->
       <div class="filters-wrap my-3">
         <div class="filters-row row g-2 align-items-center">
           <div class="col-md-4">
-            <input v-model="filterTitle" class="form-control form-control-sm" placeholder="Filtrar por título..." />
-          </div>
-          <div class="col-md-3">
-            <input v-model="filterType" class="form-control form-control-sm" placeholder="Filtrar por tipo..." />
+            <input v-model="filterTitle" class="form-control form-control-sm" placeholder="Filtrar por título" />
           </div>
           <div class="col-md-2">
-            <input v-model="filterCity" class="form-control form-control-sm" placeholder="Filtrar por cidade..." />
+            <input v-model="filterCity" class="form-control form-control-sm" placeholder="Filtrar por cidade" />
           </div>
           <div class="col-md-2">
-            <input v-model="filterNeighborhood" class="form-control form-control-sm" placeholder="Filtrar por bairro..." />
-          </div>
-          <div class="col-md-1 text-md-end">
-            <button class="btn btn-sm filters-toggle" @click="toggleAdvanced" :aria-expanded="showAdvanced">
-              {{ showAdvanced ? '▲' : '▼' }}
-            </button>
+            <input v-model="filterNeighborhood" class="form-control form-control-sm" placeholder="Filtrar por bairro" />
           </div>
         </div>
-
-        <!-- linha inferior com preços (aparece ao expandir) -->
-        <transition name="fade-slide">
-          <div v-show="showAdvanced" class="filters-advanced row g-2 mt-2">
-            <div class="col-md-2">
-              <input v-model="filterMinPrice" class="form-control form-control-sm" placeholder="Min R$" type="number" min="0" />
-            </div>
-            <div class="col-md-2">
-              <input v-model="filterMaxPrice" class="form-control form-control-sm" placeholder="Max R$" type="number" min="0" />
-            </div>
-            <!-- espaço flexível: mantém alinhamento em telas maiores -->
-            <div class="col-md-8"></div>
-          </div>
-        </transition>
       </div>
 
       <div class="admin-card">
@@ -52,7 +27,6 @@
             <thead>
               <tr>
                 <th>Título</th>
-                <th>Tipo</th>
                 <th>Cidade</th>
                 <th>Bairro</th>
                 <th>Valor</th>
@@ -62,7 +36,6 @@
               <!-- changed: impedir propagação do evento contextmenu -->
               <tr v-for="p in filtered" :key="p.id" @contextmenu.prevent.stop="openMenu($event, p)">
                 <td>{{ p.title || p.name || '-' }}</td>
-                <td>{{ p.property_type || '-' }}</td>
                 <td>{{ p.city || '-' }}</td>
                 <td>{{ p.neighborhood || '-' }}</td>
                 <td>{{ p.price ? formatCurrency(p.price) : '-' }}</td>
@@ -155,11 +128,6 @@ const filtered = computed(() => {
     return true
   })
 })
-
-const addNew = () => {
-  // usar rota existente de criação de imóveis
-  router.push({ name: 'properties-new' }).catch(()=>{})
-}
 
 const formatCurrency = (v) => {
   try { return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(v)) } catch(e) { return v }

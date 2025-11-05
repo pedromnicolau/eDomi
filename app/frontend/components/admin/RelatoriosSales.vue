@@ -2,16 +2,14 @@
   <div class="admin-panel">
     <div class="container">
       <div class="admin-toolbar d-flex align-items-center mb-3">
-       <h3 class="me-auto">Cadastros — Usuários</h3>
+       <h3 class="me-auto">Relatório — Vendas</h3>
        <div class="d-flex align-items-center">
-        <div class="filters-row"></div>
           <div class="col-md-6">
-           <input v-model="filterName" class="form-control form-control-sm" placeholder="Filtrar por nome" />
+           <input v-model="filterProperty" class="form-control form-control-sm" placeholder="Filtrar por imóvel" />
           </div>
           <div class="col-md-6">
-           <input v-model="filterEmail" class="form-control form-control-sm" placeholder="Filtrar por email" />
+           <input v-model="filterAgente" class="form-control form-control-sm" placeholder="Filtrar por corretor" />
           </div>
-         <button class="btn add-btn btn-sm" @click="addNew">+</button>
        </div>
      </div>
 
@@ -21,16 +19,16 @@
           <table class="table table-sm">
            <thead>
              <tr>
-               <th>Nome</th>
-               <th>Email</th>
-               <th>Função</th>
+               <th>Imóvel</th>
+               <th>Corretor</th>
+               <th>Valor</th>
              </tr>
            </thead>
            <tbody>
-             <tr v-for="u in filtered" :key="u.id">
-               <td>{{ u.name || '-' }}</td>
-               <td>{{ u.email || '-' }}</td>
-               <td>{{ u.role || '-' }}</td>
+             <tr v-for="s in filtered" :key="s.id">
+               <td>{{ s.property_title }}</td>
+               <td>{{ s.agent_name }}</td>
+               <td>{{ s.value ? formatCurrency(s.value) : '-' }}</td>
              </tr>
            </tbody>
           </table>
@@ -47,13 +45,13 @@ const router = useRouter()
 const records = ref([])
 const loading = ref(false)
 const query = ref('')
-const filterName = ref('')
-const filterEmail = ref('')
+const filterProperty = ref('')
+const filterAgente = ref('')
 
 const fetchRecords = async () => {
   loading.value = true
   try {
-    const res = await fetch('/users.json', { credentials: 'same-origin' })
+    const res = await fetch('/sales.json', { credentials: 'same-origin' })
     if (res.ok) records.value = await res.json()
     else records.value = []
   } catch (e) { records.value = [] }
@@ -64,26 +62,24 @@ onMounted(fetchRecords)
 
 const filtered = computed(() => {
   const list = records.value || []
-  const n = String(filterName.value || '').trim().toLowerCase()
-  const e = String(filterEmail.value || '').trim().toLowerCase()
+  const p = String(filterProperty.value || '').trim().toLowerCase()
+  const a = String(filterAgente.value || '').trim().toLowerCase()
 
   return list.filter(r => {
     // strings: se o filtro estiver vazio, aceita; caso contrário verifica includes
-    if (n && !String(r.name || '').toLowerCase().includes(n)) return false
-    if (e && !String(r.email || '').toLowerCase().includes(e)) return false
+    if (p && !String(r.property_title || '').toLowerCase().includes(p)) return false
+    if (a && !String(r.agent_name || '').toLowerCase().includes(a)) return false
 
     return true
   })
 })
 
-const addNew = () => {
-  // roteamento para signup para criar usuário (ajuste conforme backend)
-  router.push({ name: 'sign-up' }).catch(()=>{})
+const formatCurrency = (v) => {
+  try { return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(v)) } catch(e) { return v }
 }
 </script>
 
 <style scoped>
-/* same modern styles as other cadastros */
 .admin-panel { padding: 1.25rem 0 2.5rem; }
 .container {
   max-width: 1140px;
@@ -91,7 +87,7 @@ const addNew = () => {
   padding-left: 24px;
   padding-right: 24px;
 }
-.admin-card { background: #fff; border-radius: 14px; box-shadow: 0 10px 30px rgba(15, 35, 77, 0.06); border: 1px solid rgba(15,35,77,0.06); }
+.admin-card { background: #fff; border-radius: 14px; padding: 18px; box-shadow: 0 10px 30px rgba(15,35,77,0.06); border: 1px solid rgba(15,35,77,0.06); }
 .admin-toolbar h3 { margin: 0; font-weight: 600; color: #0f254d; font-size: 1.25rem; }
 .search-wrapper { position: relative; min-width: 260px; }
 .search-wrapper .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: rgba(15,35,77,0.28); font-size: 0.9rem; }
@@ -99,6 +95,12 @@ const addNew = () => {
 .add-btn { background: #4ADE80; color: #08203a; border: 0; font-weight: 600; border-radius: 999px; padding: 0.42rem 0.9rem; box-shadow: 0 6px 18px rgba(10,20,30,0.06); }
 .table thead th { background: transparent; color: rgba(15,35,77,0.85); font-weight: 700; border-bottom: 1px solid rgba(15,35,77,0.06); padding: 12px; }
 .table tbody td { padding: 12px; color: #1f2d47; border-bottom: 1px solid rgba(15,35,77,0.04); }
+.admin-card .table tbody tr:nth-child(odd) td {
+  background-color: #ffffff;
+}
+.admin-card .table tbody tr:nth-child(even) td {
+  background-color: #f6f8fb;
+}
 
 .add-btn:hover,
 .add-btn:focus {
@@ -108,34 +110,9 @@ const addNew = () => {
   box-shadow: 0 10px 22px rgba(10,20,30,0.08);
 }
 
-/* zebra striping: linhas alternadas */
-.table tbody tr:nth-child(odd) {
-  background-color: #ffffff;
-}
-.table tbody tr:nth-child(even) {
-  background-color: #f6f8fb;
-}
-
-/* hover distincto sobre qualquer linha */
-.table tbody tr:hover {
-  background-color: rgba(26,46,102,0.06); /* leve tom azul para destacar */
-}
-
-.table tbody tr:hover { background: rgba(10, 30, 60, 0.02); }
-
-/* stronger specificity: apply backgrounds to td (overrides Bootstrap) */
-.admin-card .table tbody tr:nth-child(odd) td {
-  background-color: #ffffff;
-}
-.admin-card .table tbody tr:nth-child(even) td {
-  background-color: #f6f8fb;
-}
-
-/* hover should clearly highlight the whole row */
 .admin-card .table tbody tr:hover td {
   background-color: rgba(26,46,102,0.06) !important;
 }
-
 @media (max-width: 768px) {
   .container { padding-left: 16px; padding-right: 16px; }
   .admin-toolbar { flex-direction: column; align-items: stretch; gap: 8px; }

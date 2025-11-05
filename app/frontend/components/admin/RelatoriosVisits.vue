@@ -2,12 +2,14 @@
   <div class="admin-panel">
     <div class="container">
       <div class="admin-toolbar d-flex align-items-center mb-3">
-       <h3 class="me-auto">Cadastros — Visitas</h3>
+       <h3 class="me-auto">Relatório — Visitas</h3>
        <div class="d-flex align-items-center">
-         <div class="col-md-12">
+         <div class="col-md-6">
            <input v-model="filterProperty" class="form-control form-control-sm" placeholder="Filtrar por imóvel" />
           </div>
-         <button class="btn add-btn btn-sm" @click="addNew">+</button>
+          <div class="col-md-6">
+           <input v-model="filterBuyer" class="form-control form-control-sm" placeholder="Filtrar por visitante" />
+          </div>
        </div>
      </div>
 
@@ -44,6 +46,7 @@ const records = ref([])
 const loading = ref(false)
 const query = ref('')
 const filterProperty = ref('')
+const filterBuyer = ref('')
 
 const fetchRecords = async () => {
   loading.value = true
@@ -60,18 +63,15 @@ onMounted(fetchRecords)
 const filtered = computed(() => {
   const list = records.value || []
   const p = String(filterProperty.value || '').trim().toLowerCase()
-
+  const b = String(filterBuyer.value || '').trim().toLowerCase()
   return list.filter(r => {
     // strings: se o filtro estiver vazio, aceita; caso contrário verifica includes
     if (p && !String(r.property_title || '').toLowerCase().includes(p)) return false
+    if (b && !String(r.buyer_name || '').toLowerCase().includes(b)) return false
 
     return true
   })
 })
-
-const addNew = () => {
-  router.push({ path: '/' })
-}
 
 const formatDate = (iso) => {
   try {

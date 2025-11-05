@@ -2,16 +2,17 @@
   <div class="admin-panel">
     <div class="container">
       <div class="admin-toolbar d-flex align-items-center mb-3">
-       <h3 class="me-auto">Cadastros — Comissões</h3>
+       <h3 class="me-auto">Relatório — Usuários</h3>
        <div class="d-flex align-items-center">
+        <div class="filters-row"></div>
           <div class="col-md-6">
-           <input v-model="filterAgente" class="form-control form-control-sm" placeholder="Filtrar por corretor" />
+           <input v-model="filterName" class="form-control form-control-sm" placeholder="Filtrar por nome" />
           </div>
           <div class="col-md-6">
-           <input v-model="filterSale" class="form-control form-control-sm" placeholder="Filtrar por venda" />
+           <input v-model="filterEmail" class="form-control form-control-sm" placeholder="Filtrar por email" />
           </div>
        </div>
-      </div>
+     </div>
 
       <div class="admin-card">
         <div v-if="loading" class="text-muted">Carregando...</div>
@@ -19,17 +20,16 @@
           <table class="table table-sm">
            <thead>
              <tr>
-               <th>Corretor</th>
-               <th>Percentual</th>
-               <th>Valor</th>
+               <th>Nome</th>
+               <th>Email</th>
+               <th>Função</th>
              </tr>
            </thead>
            <tbody>
-             <tr v-for="c in filtered" :key="c.id">
-               <td>{{ c.agent_name || '-' }}</td>
-               <td>{{ c.percentage ? c.percentage + '%' : '-' }}</td>
-               <td>{{ c.value ? formatCurrency(c.value) : '-' }}</td>
-               <td><router-link :to="{ name: 'sales-list', params: { id: c.id } }" class="btn btn-sm btn-outline-primary me-2">Vendas</router-link></td>
+             <tr v-for="u in filtered" :key="u.id">
+               <td>{{ u.name || '-' }}</td>
+               <td>{{ u.email || '-' }}</td>
+               <td>{{ u.role || '-' }}</td>
              </tr>
            </tbody>
           </table>
@@ -46,13 +46,13 @@ const router = useRouter()
 const records = ref([])
 const loading = ref(false)
 const query = ref('')
-const filterAgente = ref('')
-const filterSale = ref('')
+const filterName = ref('')
+const filterEmail = ref('')
 
 const fetchRecords = async () => {
   loading.value = true
   try {
-    const res = await fetch('/commissions.json', { credentials: 'same-origin' })
+    const res = await fetch('/users.json', { credentials: 'same-origin' })
     if (res.ok) records.value = await res.json()
     else records.value = []
   } catch (e) { records.value = [] }
@@ -63,28 +63,22 @@ onMounted(fetchRecords)
 
 const filtered = computed(() => {
   const list = records.value || []
-  const a = String(filterAgente.value || '').trim().toLowerCase()
-  const s = String(filterSale.value || '').trim().toLowerCase()
+  const n = String(filterName.value || '').trim().toLowerCase()
+  const e = String(filterEmail.value || '').trim().toLowerCase()
 
   return list.filter(r => {
     // strings: se o filtro estiver vazio, aceita; caso contrário verifica includes
-    if (a && !String(r.agent_name || '').toLowerCase().includes(a)) return false
-    if (s && !String(r.sale_name || '').toLowerCase().includes(s)) return false
+    if (n && !String(r.name || '').toLowerCase().includes(n)) return false
+    if (e && !String(r.email || '').toLowerCase().includes(e)) return false
 
     return true
   })
 })
 
-const addNew = () => {
-  router.push({ path: '/commissions/new' }).catch(()=>{ alert('Rota de criação de comissão não implementada') })
-}
-
-const formatCurrency = (v) => {
-  try { return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(v)) } catch(e) { return v }
-}
 </script>
 
 <style scoped>
+/* same modern styles as other cadastros */
 .admin-panel { padding: 1.25rem 0 2.5rem; }
 .container {
   max-width: 1140px;
@@ -92,7 +86,7 @@ const formatCurrency = (v) => {
   padding-left: 24px;
   padding-right: 24px;
 }
-.admin-card { background: #fff; border-radius: 14px; padding: 18px; box-shadow: 0 10px 30px rgba(15,35,77,0.06); border: 1px solid rgba(15,35,77,0.06); }
+.admin-card { background: #fff; border-radius: 14px; box-shadow: 0 10px 30px rgba(15, 35, 77, 0.06); border: 1px solid rgba(15,35,77,0.06); }
 .admin-toolbar h3 { margin: 0; font-weight: 600; color: #0f254d; font-size: 1.25rem; }
 .search-wrapper { position: relative; min-width: 260px; }
 .search-wrapper .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: rgba(15,35,77,0.28); font-size: 0.9rem; }
@@ -100,6 +94,31 @@ const formatCurrency = (v) => {
 .add-btn { background: #4ADE80; color: #08203a; border: 0; font-weight: 600; border-radius: 999px; padding: 0.42rem 0.9rem; box-shadow: 0 6px 18px rgba(10,20,30,0.06); }
 .table thead th { background: transparent; color: rgba(15,35,77,0.85); font-weight: 700; border-bottom: 1px solid rgba(15,35,77,0.06); padding: 12px; }
 .table tbody td { padding: 12px; color: #1f2d47; border-bottom: 1px solid rgba(15,35,77,0.04); }
+
+.add-btn:hover,
+.add-btn:focus {
+  background: #4ADE80 !important;
+  color: #08203a !important;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px rgba(10,20,30,0.08);
+}
+
+/* zebra striping: linhas alternadas */
+.table tbody tr:nth-child(odd) {
+  background-color: #ffffff;
+}
+.table tbody tr:nth-child(even) {
+  background-color: #f6f8fb;
+}
+
+/* hover distincto sobre qualquer linha */
+.table tbody tr:hover {
+  background-color: rgba(26,46,102,0.06); /* leve tom azul para destacar */
+}
+
+.table tbody tr:hover { background: rgba(10, 30, 60, 0.02); }
+
+/* stronger specificity: apply backgrounds to td (overrides Bootstrap) */
 .admin-card .table tbody tr:nth-child(odd) td {
   background-color: #ffffff;
 }
@@ -107,9 +126,11 @@ const formatCurrency = (v) => {
   background-color: #f6f8fb;
 }
 
+/* hover should clearly highlight the whole row */
 .admin-card .table tbody tr:hover td {
   background-color: rgba(26,46,102,0.06) !important;
 }
+
 @media (max-width: 768px) {
   .container { padding-left: 16px; padding-right: 16px; }
   .admin-toolbar { flex-direction: column; align-items: stretch; gap: 8px; }
