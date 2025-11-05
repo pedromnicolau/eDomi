@@ -176,7 +176,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_28_114310) do
     t.datetime "updated_at", null: false
     t.string "name"
     t.integer "role"
+    t.bigint "person_id"
     t.index ["email"], name: "index_users_on_email", unique: true
+    t.index ["person_id"], name: "index_users_on_person_id"
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
 
@@ -205,6 +207,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_28_114310) do
   add_foreign_key "sales", "properties"
   add_foreign_key "sales", "users", column: "agent_id"
   add_foreign_key "sales", "users", column: "buyer_id"
+  add_foreign_key "users", "people"
   add_foreign_key "visits", "properties"
   add_foreign_key "visits", "users", column: "agent_id"
   add_foreign_key "visits", "users", column: "buyer_id"

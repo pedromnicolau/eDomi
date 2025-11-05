@@ -7,7 +7,11 @@
 
       <div v-if="loading" class="py-5 text-muted">Carregando...</div>
       <div v-else>
-        <div v-if="error" class="alert alert-danger">{{ error }}</div>
+        <div v-if="persistentError" class="alert alert-danger d-flex justify-content-between align-items-start">
+          <div>{{ persistentError }}</div>
+          <button type="button" class="btn-close" aria-label="Fechar" @click="closePersistentError"></button>
+        </div>
+        <div v-else-if="error" class="alert alert-danger">{{ error }}</div>
 
         <form @submit.prevent="submit" enctype="multipart/form-data" novalidate>
           <div class="row g-3">
@@ -130,7 +134,7 @@
 
               <!-- fotos já existentes -->
               <div v-if="existingPhotos.length" class="mt-3">
-                <div class="small mb-1 fw-semibold text-muted">Fotos já anexadas</div>
+               
                 <div class="d-flex flex-wrap gap-3">
                   <div
                     v-for="(p, idx) in existingPhotos"
@@ -207,6 +211,8 @@ const form = ref({
 
 const loading = ref(false)
 const error = ref(null)
+// novo ref persistente para a mensagem de validação que não deve sumir automaticamente
+const persistentError = ref(null)
 
 // novo estado para submissão
 const submitting = ref(false)
@@ -311,7 +317,7 @@ const submit = async () => {
 
   // validacoes simples
   if (!form.value.title || !form.value.price || !form.value.property_type || !form.value.address || !form.value.city || !form.value.state) {
-    error.value = 'Preencha os campos obrigatórios: título, preço, tipo, endereço, cidade e estado.'
+    persistentError.value = 'Preencha os campos obrigatórios: título, preço, tipo, endereço, cidade e estado.'
     return
   }
 
@@ -358,14 +364,17 @@ const submit = async () => {
       const txt = await res.text().catch(() => '')
       throw new Error(txt || 'Erro ao salvar')
     }
-
-    // sucesso — navegar para raiz da SPA
     router.push({ path: '/' })
   } catch (e) {
     error.value = e.message || String(e)
   } finally {
     submitting.value = false
   }
+}
+
+// função para o botão fechar do alerta persistente
+const closePersistentError = () => {
+  persistentError.value = null
 }
 </script>
 

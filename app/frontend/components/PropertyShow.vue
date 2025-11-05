@@ -207,6 +207,8 @@ onMounted(async () => {
 // carousel
 const startAutoAdvance = () => {
   stopAutoAdvance()
+  // don't start auto-advance while lightbox is open
+  if (lightboxOpen.value) return
   if (!photos.value || photos.value.length <= 1) return
   autoAdvanceInterval.value = setInterval(() => nextPhoto(), 5000)
 }
