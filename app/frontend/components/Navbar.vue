@@ -32,7 +32,7 @@
             <router-link class="dropdown-item" to="/admin/reports/properties" @click="closeCadastros">Imóveis</router-link>
             <router-link class="dropdown-item" to="/admin/reports/users" @click="closeCadastros">Usuários</router-link>
             <router-link class="dropdown-item" to="/admin/reports/sales" @click="closeCadastros">Vendas</router-link>
-            <router-link class="dropdown-item" to="/admin/reports/comissions" @click="closeCadastros">Comissões</router-link>
+            <router-link class="dropdown-item" to="/admin/reports/commissions" @click="closeCadastros">Comissões</router-link>
             <router-link class="dropdown-item" to="/admin/reports/visits" @click="closeCadastros">Visitas</router-link>
           </div>
         </div>

@@ -3,23 +3,18 @@
     <div class="container">
       <div class="admin-toolbar d-flex align-items-center mb-3">
         <h3 class="me-auto">Relatório — Imóveis</h3>
+          <div class="d-flex align-items-center">
+            <div class="col-md-4">
+              <input v-model="filterTitle" class="form-control form-control-sm" placeholder="Filtrar por título" />
+            </div>
+            <div class="col-md-4">
+              <input v-model="filterCity" class="form-control form-control-sm" placeholder="Filtrar por cidade" />
+            </div>
+            <div class="col-md-4">
+              <input v-model="filterNeighborhood" class="form-control form-control-sm" placeholder="Filtrar por bairro" />
+            </div>
+          </div>
       </div>
-
-      <!-- CHANGED: múltiplos filtros funcionais -->
-      <div class="filters-wrap my-3">
-        <div class="filters-row row g-2 align-items-center">
-          <div class="col-md-4">
-            <input v-model="filterTitle" class="form-control form-control-sm" placeholder="Filtrar por título" />
-          </div>
-          <div class="col-md-2">
-            <input v-model="filterCity" class="form-control form-control-sm" placeholder="Filtrar por cidade" />
-          </div>
-          <div class="col-md-2">
-            <input v-model="filterNeighborhood" class="form-control form-control-sm" placeholder="Filtrar por bairro" />
-          </div>
-        </div>
-      </div>
-
       <div class="admin-card">
         <div v-if="loading" class="text-muted">Carregando...</div>
         <div v-else class="table-responsive">
