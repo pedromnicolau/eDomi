@@ -54,17 +54,29 @@ const sending = ref(false)
 const success = ref(null)
 const error = ref(null)
 
+const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+
 const send = async () => {
   success.value = error.value = null
   if (!name.value || !email.value || !message.value) {
     error.value = 'Preencha todos os campos.'
     return
   }
+  const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)
+  if (!emailOk) {
+    error.value = 'Informe um e-mail válido.'
+    return
+  }
+  if (sending.value) return
   sending.value = true
   try {
     const res = await fetch('/contacts.json', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-CSRF-Token': csrfToken
+      },
       body: JSON.stringify({ contact: { name: name.value, email: email.value, message: message.value } }),
       credentials: 'same-origin'
     })

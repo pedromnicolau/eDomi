@@ -282,10 +282,33 @@ onBeforeUnmount(() => {
 // arquivos selecionados
 const onFilesChange = (e) => {
   const incoming = Array.from(e.target.files || [])
-  // revoke previous previews
-  previewUrls.value.forEach(u => { try { URL.revokeObjectURL(u) } catch {} })
-  files.value = incoming
-  previewUrls.value = files.value.map(f => URL.createObjectURL(f))
+
+  // build a Set of signatures for existing files to avoid duplicates
+  const existingSigs = new Set(files.value.map(f => `${f.name}::${f.size}::${f.lastModified}`))
+
+  // filter only truly new files
+  const newFiles = incoming.filter(f => {
+    const sig = `${f.name}::${f.size}::${f.lastModified}`
+    if (existingSigs.has(sig)) return false
+    existingSigs.add(sig)
+    return true
+  })
+
+  if (newFiles.length === 0) {
+    // clear input to allow re-selecting same files later
+    if (fileInput.value) fileInput.value.value = ''
+    return
+  }
+
+  // append new files to the reactive files array
+  files.value = files.value.concat(newFiles)
+
+  // create and append previews only for the new files
+  const newPreviews = newFiles.map(f => URL.createObjectURL(f))
+  previewUrls.value = previewUrls.value.concat(newPreviews)
+
+  // clear input so selecting the same files again will fire change
+  if (fileInput.value) fileInput.value.value = ''
 }
 
 // remove um novo arquivo selecionado antes do envio

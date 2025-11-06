@@ -44,4 +44,5 @@ Rails.application.routes.draw do
   resources :users, only: [ :index ]
 
   resources :people, only: [ :index, :show, :create, :update, :destroy ]
+  resources :contacts, only: [ :create ]
 end
