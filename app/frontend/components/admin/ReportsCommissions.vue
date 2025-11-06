@@ -21,7 +21,7 @@
              <tr>
                <th>Corretor</th>
                <th>Percentual</th>
-               <th>Valor</th>
+               <th>Valor comissão</th>
              </tr>
            </thead>
            <tbody>

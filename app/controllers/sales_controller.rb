@@ -9,7 +9,9 @@ class SalesController < ApplicationController
         property_title: s.property&.title,
         agent_name: s.agent&.name,
         value: s.sale_price
-      }
+      }.merge(
+        commission: (s.sale_price * 5) / 100
+        )
     }
   end
 end

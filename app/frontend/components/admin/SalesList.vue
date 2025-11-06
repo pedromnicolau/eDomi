@@ -9,7 +9,8 @@
           <tr>
             <th>Imóvel</th>
             <th>Agente</th>
-            <th>Valor</th>
+            <th>Valor venda</th>
+            <th>Valor comissão</th>
           </tr>
         </thead>
         <tbody>
@@ -17,6 +18,7 @@
             <td>{{ sale.property_title || '-' }}</td>
             <td>{{ sale.agent_name || '-' }}</td>
             <td>{{ sale.value ? formatCurrency(sale.value) : '-' }}</td>
+            <td>{{ sale.commission ? formatCurrency(sale.commission) : '-' }}</td>
           </tr>
           <tr v-if="sales.length === 0">
             <td colspan="3" class="text-center text-muted">Nenhuma venda encontrada</td>
