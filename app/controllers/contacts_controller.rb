@@ -5,8 +5,12 @@ class ContactsController < ApplicationController
     @contact = Contact.new(contact_params)
 
     if @contact.save
-      # Envia o email
-      ContactMailer.contact_message(@contact).deliver_now
+      # Envia o email (tenta em background; em caso de falha, log e não retorna 500)
+      begin
+        ContactMailer.contact_message(@contact).deliver_later
+      rescue => e
+        Rails.logger.error("Falha ao enfileirar ContactMailer: #{e.message}")
+      end
 
       render json: { message: "Mensagem enviada com sucesso!" }, status: :created
     else

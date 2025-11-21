@@ -55,6 +55,14 @@ const success = ref(null)
 const error = ref(null)
 
 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+const phoneNumber = '5519993489249'
+
+const openWhatsApp = (nameVal, emailVal, messageVal) => {
+  const text = `Olá, sou ${nameVal}, email: (${emailVal}). ${messageVal}`
+  const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(text)}`
+  // abre em nova aba/janela
+  window.open(url, '_blank')
+}
 
 const send = async () => {
   success.value = error.value = null
@@ -82,10 +90,14 @@ const send = async () => {
     })
     if (res.ok) {
       success.value = 'Mensagem enviada. Entraremos em contato em breve.'
+      // abre WhatsApp com mensagem pronta
+      openWhatsApp(name.value, email.value, message.value)
       clear()
     } else {
       const j = await res.json().catch(() => null)
       error.value = (j && j.error) || 'Erro ao enviar mensagem.'
+      // mesmo em erro de backend, ainda ofereça abrir o WhatsApp se o usuário quiser:
+      // não abrimos automaticamente para evitar spam em caso de validação falha
     }
   } catch (e) {
     error.value = 'Erro de rede.'

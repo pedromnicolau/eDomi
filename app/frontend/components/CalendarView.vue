@@ -37,18 +37,31 @@
           </div>
 
           <div v-for="(v,i) in cell.visits.slice(0,2)" :key="i" class="visit-line">
-            <router-link
-              v-if="v.property_id"
-              :to="`/properties/${v.property_id}`"
-              class="text-decoration-none text-dark"
-            >
-              <span class="visit-time">{{ formatTime(v.scheduled_at) }}</span>
-              <span class="visit-prop">— {{ v.property_title || ('Imóvel #' + v.property_id) }}</span>
-            </router-link>
+            <div class="d-flex align-items-center justify-content-between">
+              <div>
+                <router-link
+                  v-if="v.property_id"
+                  :to="`/properties/${v.property_id}`"
+                  class="text-decoration-none text-dark"
+                >
+                  <span class="visit-time">{{ formatTime(v.scheduled_at) }}</span>
+                  <span class="visit-prop">— {{ v.property_title || ('Imóvel #' + v.property_id) }}</span>
+                </router-link>
 
-            <span v-else class="text-muted small">
-              {{ formatTime(v.scheduled_at) }} — {{ v.property_title || 'Imóvel desconhecido' }}
-            </span>
+                <span v-else class="text-muted small">
+                  {{ formatTime(v.scheduled_at) }} — {{ v.property_title || 'Imóvel desconhecido' }}
+                </span>
+              </div>
+              <!-- status badge -->
+              <div>
+                <span
+                  class="small badge-status"
+                  :class="v.status === 'pending' ? 'badge-pending' : (v.status === 'confirmed' ? 'badge-confirmed' : '')"
+                >
+                  {{ v.status === 'pending' ? 'Pendente' : (v.status === 'confirmed' ? 'Confirmada' : '') }}
+                </span>
+              </div>
+            </div>
           </div>
 
           <div v-if="cell.visits.length > 2" class="more small">+{{ cell.visits.length - 2 }} mais...</div>
@@ -85,9 +98,16 @@
               {{ formatTime(v.scheduled_at) }} — {{ v.notes || '' }}
             </div>
           </div>
+
           <div class="small text-end text-muted">
             <div>{{ v.buyer_name || v.buyer_email || '' }}</div>
             <div>{{ v.agent_name || v.agent_email || '' }}</div>
+
+            <!-- Ações do anunciante (aceitar / recusar) -->
+            <div v-if="canManageVisit(v)" class="mt-2 d-flex gap-2 justify-content-end">
+              <button v-if="v.status === 'pending'" class="btn btn-sm btn-success" @click="acceptVisit(v.id)" :disabled="actionLoading[v.id]">Aceitar</button>
+              <button v-if="v.status === 'pending'" class="btn btn-sm btn-outline-danger" @click="rejectVisit(v.id)" :disabled="actionLoading[v.id]">Recusar</button>
+            </div>
           </div>
         </li>
 
@@ -264,6 +284,96 @@ const today = () => {
   selectedDate.value = toKey(d)
 }
 
+const currentUser = ref(null)
+const actionLoading = ref({}) // map visitId -> bool
+
+const fetchCurrentUser = async () => {
+  try {
+    const res = await fetch('/current_user', { credentials: 'same-origin' })
+    if (res.ok) {
+      currentUser.value = await res.json()
+    } else {
+      currentUser.value = null
+    }
+  } catch (e) {
+    currentUser.value = null
+  }
+}
+
+// helper: checa se o usuário atual pode gerenciar (aceitar/recusar) a visita
+const isAdmin = (u) => {
+  if (!u) return false
+  const r = u.role
+  return r === 'admin' || r === '2' || r === 2
+}
+const canManageVisit = (v) => {
+  if (!currentUser.value) return false
+  if (isAdmin(currentUser.value)) return true
+  return Number(currentUser.value.id) === Number(v.agent_id)
+}
+
+// atualiza uma visita em visitsByDate por id (aplica updater fn)
+const updateVisitInMap = (visitId, updater) => {
+  for (const k of Object.keys(visitsByDate.value)) {
+    let changed = false
+    visitsByDate.value[k] = visitsByDate.value[k].map(v => {
+      if (Number(v.id) === Number(visitId)) {
+        changed = true
+        return updater(Object.assign({}, v))
+      }
+      return v
+    }).filter(Boolean)
+    // se removed (updater returned null), removido via filter
+    if (changed) {
+      // trigger reactivity by reassigning object
+      visitsByDate.value = Object.assign({}, visitsByDate.value)
+      break
+    }
+  }
+}
+
+const acceptVisit = async (id) => {
+  actionLoading.value[id] = true
+  try {
+    const res = await fetch(`/visits/${id}/accept`, {
+      method: 'PATCH',
+      headers: { 'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '' },
+      credentials: 'same-origin'
+    })
+    if (res.ok) {
+      // atualizar status local para confirmed
+      updateVisitInMap(id, (v) => { v.status = 'confirmed'; return v })
+    } else {
+      console.warn('acceptVisit failed', res.status)
+    }
+  } catch (e) {
+    console.error('acceptVisit error', e)
+  } finally {
+    actionLoading.value[id] = false
+  }
+}
+
+const rejectVisit = async (id) => {
+  actionLoading.value[id] = true
+  try {
+    const res = await fetch(`/visits/${id}/reject`, {
+      method: 'PATCH',
+      headers: { 'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '' },
+      credentials: 'same-origin'
+    })
+    if (res.ok) {
+      // remover visita do map (vai desaparecer do calendário)
+      updateVisitInMap(id, (v) => null)
+    } else {
+      console.warn('rejectVisit failed', res.status)
+    }
+  } catch (e) {
+    console.error('rejectVisit error', e)
+  } finally {
+    actionLoading.value[id] = false
+  }
+}
+
 onMounted(async () => {
   // tenta inicializar selectedDate a partir da query string (rota /calendar?date=YYYY-MM-DD)
   const qdate = route.query.date
@@ -274,12 +384,12 @@ onMounted(async () => {
       month.value = (Number(parts[1]) - 1) || month.value
       selectedDate.value = `${String(parts[0]).padStart(4,'0')}-${pad(Number(parts[1]))}-${pad(Number(parts[2]))}`
     } else {
-      // se veio com timestamp, tenta extrair
       const k = toKeyFromISO(qdate)
       if (k) selectedDate.value = k
     }
   }
-  await fetchVisits()
+
+  await Promise.all([ fetchCurrentUser(), fetchVisits() ])
 })
 </script>
 
@@ -318,4 +428,7 @@ onMounted(async () => {
 }
 .visit-time { font-weight: 600; margin-right: 6px; }
 .more { text-align: right; color: #8b0000; }
+.badge-status { display:inline-block; padding: 2px 8px; border-radius: 999px; font-weight:600; font-size:0.7rem; }
+.badge-pending { background: #facc15; color: #1a1a1a; }   /* amarelo */
+.badge-confirmed { background: #10b981; color: #fff; }    /* verde */
 </style>

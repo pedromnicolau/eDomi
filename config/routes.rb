@@ -28,7 +28,12 @@ Rails.application.routes.draw do
     end
   end
   resources :properties
-  resources :visits, only: [ :create, :index ]
+  resources :visits, only: [ :create, :index ] do
+    member do
+      patch :accept
+      patch :reject
+    end
+  end
   get "/current_user", to: "users#current"
 
   # adicionadas: endpoints JSON utilizados pelo frontend
