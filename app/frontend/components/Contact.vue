@@ -55,7 +55,7 @@ const success = ref(null)
 const error = ref(null)
 
 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-const phoneNumber = '5519993489249'
+const phoneNumber = '5513978252727'
 
 const openWhatsApp = (nameVal, emailVal, messageVal) => {
   const text = `Olá, sou ${nameVal}, email: (${emailVal}). ${messageVal}`
