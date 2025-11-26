@@ -41,13 +41,75 @@
             <button type="submit" class="btn" :disabled="mismatch" style="background:#1A2E66; color:#fff;">Salvar alterações</button>
           </div>
 
-          <div v-if="formError" class="text-danger small mb-2">{{ formError }}</div>
-          <div v-if="formSuccess" class="text-success small mb-2">{{ formSuccess }}</div>
+          <div v-if="formError" class="alert alert-danger small mb-2" data-autoclose="false">{{ formError }}</div>
+          <div v-if="formSuccess" class="alert alert-success small mb-2" data-autoclose="false">{{ formSuccess }}</div>
         </form>
 
         <hr/>
+        <div class="mt-4 p-3 border border-danger rounded">
+          <h6 class="text-danger mb-2">Zona de Perigo</h6>
+          <p class="small text-muted mb-3">
+            Excluir sua conta é uma ação permanente e não pode ser desfeita. 
+            Todos os seus dados serão removidos permanentemente.
+          </p>
+          
+          <button
+            type="button"
+            class="btn btn-outline-danger btn-sm"
+            @click="showDeleteConfirmation = true"
+            v-if="!showDeleteConfirmation"
+          >
+            Excluir minha conta
+          </button>
+
+          <!-- Modal de confirmação inline -->
+          <div v-if="showDeleteConfirmation" class="mt-3">
+            <div class="alert alert-danger mb-3">
+              <strong>⚠️ Atenção!</strong> Esta ação é irreversível.
+              Digite sua senha atual para confirmar a exclusão da sua conta.
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small">Senha atual para confirmar</label>
+              <input
+                v-model="deletePassword"
+                type="password"
+                class="form-control form-control-sm"
+                placeholder="Digite sua senha"
+                @keyup.enter="confirmDelete"
+              />
+            </div>
+
+            <div v-if="deleteError" class="text-danger small mb-2">{{ deleteError }}</div>
+
+            <div class="d-flex gap-2">
+              <button
+                type="button"
+                class="btn btn-danger btn-sm"
+                @click="confirmDelete"
+                :disabled="!deletePassword || deletingAccount"
+              >
+                <span v-if="deletingAccount">
+                  <span class="spinner-border spinner-border-sm me-1"></span>
+                  Excluindo...
+                </span>
+                <span v-else>Sim, excluir minha conta</span>
+              </button>
+              <button
+                type="button"
+                class="btn btn-outline-secondary btn-sm"
+                @click="cancelDelete"
+                :disabled="deletingAccount"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <hr/>
         <div class="text-center small">
-          <a href="/">Cancelar</a>
+          <router-link to="/">Voltar</router-link>
         </div>
       </div>
     </div>
@@ -73,6 +135,12 @@ const mismatch = computed(() =>
 
 const formError = ref('')
 const formSuccess = ref('')
+
+// Estados para exclusão de conta
+const showDeleteConfirmation = ref(false)
+const deletePassword = ref('')
+const deleteError = ref('')
+const deletingAccount = ref(false)
 
 // busca usuário atual
 onMounted(async () => {
@@ -154,6 +222,53 @@ const submitForm = async () => {
    } catch (e) {
      formError.value = e.message || 'Erro ao atualizar perfil.'
    }
+}
+
+// Cancela processo de exclusão
+const cancelDelete = () => {
+  showDeleteConfirmation.value = false
+  deletePassword.value = ''
+  deleteError.value = ''
+}
+
+// Confirma e executa exclusão da conta
+const confirmDelete = async () => {
+  if (!deletePassword.value) {
+    deleteError.value = 'Digite sua senha para confirmar.'
+    return
+  }
+
+  deleteError.value = ''
+  deletingAccount.value = true
+
+  try {
+    const res = await fetch('/users', {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': csrf.value
+      },
+      credentials: 'same-origin',
+      body: JSON.stringify({
+        user: {
+          current_password: deletePassword.value
+        }
+      })
+    })
+
+    const data = await res.json().catch(() => null)
+
+    if (res.ok) {
+      // Redireciona para home após exclusão bem-sucedida
+      window.location.href = '/'
+    } else {
+      deleteError.value = (data && data.error) || 'Erro ao excluir conta.'
+      deletingAccount.value = false
+    }
+  } catch (e) {
+    deleteError.value = e.message || 'Erro ao excluir conta.'
+    deletingAccount.value = false
+  }
 }
 </script>
 

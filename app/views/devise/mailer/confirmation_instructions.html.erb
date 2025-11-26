@@ -1,0 +1,10 @@
+<p>Bem-vindo(a) <%= @resource.name || @resource.email %>!</p>
+
+<p>Sua conta no eDomi foi criada com sucesso.</p>
+
+<p>Para confirmar sua conta, clique no link abaixo:</p>
+
+<p><%= link_to 'Confirmar minha conta', confirmation_url(@resource, confirmation_token: @token) %></p>
+
+<p>Atenciosamente,<br>
+Equipe eDomi</p>

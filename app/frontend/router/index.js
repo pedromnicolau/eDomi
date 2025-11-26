@@ -6,10 +6,10 @@ import PropertyShow from '@/components/PropertyShow.vue'
 import PropertyForm from '@/components/PropertyForm.vue'
 import SignIn from '@/components/users/SignIn.vue'
 import SignUp from '@/components/users/SignUp.vue'
-import ForgotPassword from '@/components/users/ForgotPassword.vue'
-import ResetPassword from '@/components/users/ResetPassword.vue'
 import EditProfile from '@/components/users/EditProfile.vue'
 import ChangePassword from '@/components/users/ChangePassword.vue'
+import ForgotPassword from '@/components/users/ForgotPassword.vue'
+import ResetPassword from '@/components/users/ResetPassword.vue'
 import CalendarView from '@/components/CalendarView.vue'
 import Privacy from '@/components/Privacy.vue'
 import Terms from '@/components/Terms.vue'
@@ -33,10 +33,10 @@ const routes = [
   { path: '/properties/:id/edit', name: 'properties-edit', component: PropertyForm, props: true },
   { path: '/users/sign_in', name: 'sign-in', component: SignIn, props: true },
   { path: '/users/sign_up', name: 'sign-up', component: SignUp, props: true },
-  { path: '/users/password/new', name: 'password-new', component: ForgotPassword },
-  { path: '/users/password/edit', name: 'password-edit', component: ResetPassword },
   { path: '/users/edit', name: 'user-edit', component: EditProfile },
   { path: '/users/password/change', name: 'user-password-change', component: ChangePassword },
+  { path: '/users/password/new', name: 'forgot-password', component: ForgotPassword },
+  { path: '/users/password/edit', name: 'reset-password', component: ResetPassword },
   { path: '/calendar', name: 'calendar', component: CalendarView },
   { path: '/privacy', name: 'privacy', component: Privacy },
   { path: '/terms', name: 'terms', component: Terms },

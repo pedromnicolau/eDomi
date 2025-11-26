@@ -47,7 +47,7 @@
         <hr />
 
         <div class="text-center small">
-          Já tem conta? <a href="/users/sign_in">Entrar</a>
+          Já tem conta? <router-link to="/users/sign_in">Entrar</router-link>
         </div>
       </div>
     </div>

@@ -185,8 +185,15 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_05_192613) do
     t.string "name"
     t.integer "role"
     t.bigint "person_id"
+    t.string "provider"
+    t.string "uid"
+    t.string "email_verification_token"
+    t.datetime "email_verified_at"
+    t.datetime "verification_sent_at"
     t.index ["email"], name: "index_users_on_email", unique: true
+    t.index ["email_verification_token"], name: "index_users_on_email_verification_token", unique: true
     t.index ["person_id"], name: "index_users_on_person_id"
+    t.index ["provider", "uid"], name: "index_users_on_provider_and_uid", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
 

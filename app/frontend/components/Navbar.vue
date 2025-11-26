@@ -96,7 +96,7 @@
               </button>
 
               <div v-if="dropdownOpen" class="dropdown-menu-custom shadow-sm">
-                <a class="dropdown-item" href="/users/edit">Editar perfil</a>
+                <a class="dropdown-item" href="/users/edit">Perfil</a>
                 <div class="dropdown-divider"></div>
                 <button class="dropdown-item text-danger" @click="logout" type="button">Sair</button>
               </div>

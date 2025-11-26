@@ -68,8 +68,8 @@ Rails.application.configure do
     address: "smtp.titan.email",
     port: 587,                    # STARTTLS
     domain: "edomi.com.br",
-    user_name: Rails.application.credentials.dig(:smtp, :user_name) || "contato@edomi.com.br",
-    password: Rails.application.credentials.dig(:smtp, :password),
+    user_name: ENV.fetch("SMTP_USER_NAME", "contato@edomi.com.br"),
+    password: ENV["SMTP_PASSWORD"],
     authentication: :login,
     enable_starttls_auto: true
   }

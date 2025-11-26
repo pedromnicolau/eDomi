@@ -1,6 +1,8 @@
 <template>
   <Navbar />
-  <div class="min-vh-100"><router-view /></div>
+  <div class="min-vh-100">
+    <router-view />
+  </div>
   <Footer />
 </template>
 

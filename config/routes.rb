@@ -1,10 +1,28 @@
 Rails.application.routes.draw do
-  # usar controller customizado para sessions para capturar redirect_to na tela de login
+  # usar controller customizado para sessions, registrations e passwords
   devise_for :users, controllers: {
     sessions: "users/sessions",
-    registrations: "users/registrations"  # <--- adicione isso
-  }
+    registrations: "users/registrations",
+    passwords: "users/passwords"
+  }, skip: [ :sessions, :registrations, :passwords ]
 
+  # Rotas Devise customizadas para API/SPA
+  devise_scope :user do
+    # Sessions
+    post "users/sign_in", to: "users/sessions#create"
+    delete "users/sign_out", to: "users/sessions#destroy"
+
+    # Registrations
+    post "users", to: "users/registrations#create"
+    put "users", to: "users/registrations#update"
+    patch "users", to: "users/registrations#update"
+    delete "users", to: "users/registrations#destroy"
+
+    # Passwords
+    post "users/password", to: "users/passwords#create"
+    put "users/password", to: "users/passwords#update"
+    patch "users/password", to: "users/passwords#update"
+  end
 
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
