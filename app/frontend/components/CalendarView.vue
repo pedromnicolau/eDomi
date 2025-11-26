@@ -97,6 +97,13 @@
             <div class="small text-muted">
               {{ formatTime(v.scheduled_at) }} — {{ v.notes || '' }}
             </div>
+                <div v-if="v.buyer_phone" class="mt-1 small">
+                  <strong>Telefone visitante:</strong> {{ v.buyer_phone }}
+                  <span v-if="canManageVisit(v)" class="ms-2 d-inline-flex gap-1">
+                    <a :href="`tel:${sanitizePhone(v.buyer_phone)}`" class="btn btn-outline-secondary btn-sm py-0 px-2">Ligar</a>
+                    <a :href="whatsLink(v.buyer_phone)" target="_blank" rel="noopener" class="btn btn-success btn-sm py-0 px-2">WhatsApp</a>
+                  </span>
+                </div>
           </div>
 
           <div class="small text-end text-muted">
@@ -255,6 +262,19 @@ const fetchVisits = async () => {
     visits.value = []
     visitsByDate.value = {}
   }
+}
+
+// helpers para telefone
+const sanitizePhone = (p) => {
+  if (!p) return ''
+  return p.replace(/\D/g,'')
+}
+const whatsLink = (p) => {
+  const digits = sanitizePhone(p)
+  if (!digits) return '#'
+  // se já começar com 55 assume formato internacional, senão adiciona 55 (Brasil)
+  const full = digits.startsWith('55') ? digits : ('55' + digits)
+  return `https://wa.me/${full}`
 }
 
 const openDay = (dateKey) => {

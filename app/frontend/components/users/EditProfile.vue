@@ -15,6 +15,22 @@
             <input name="user[email]" v-model="email" type="email" class="form-control" required />
           </div>
 
+                  <div class="mb-3">
+                    <label class="form-label">Telefone</label>
+                    <input
+                      name="user[phone]"
+                      v-model="phone"
+                      type="tel"
+                      class="form-control"
+                      :class="{ 'is-invalid': phoneError }"
+                      placeholder="Ex: 11987654321"
+                      pattern="\+?\d{10,15}"
+                      required
+                    />
+                    <div class="form-text small">Informe seu número com DDD. Apenas dígitos (pode iniciar com +).</div>
+                    <div v-if="phoneError" class="invalid-feedback small">{{ phoneError }}</div>
+                  </div>
+
           <hr class="my-4">
 
           <div class="mb-3">
@@ -32,9 +48,9 @@
           <hr class="my-4">
 
           <div class="mb-3">
-            <label class="form-label">Senha atual (confirmação)</label>
-            <input name="user[current_password]" v-model="currentPassword" type="password" class="form-control" required />
-            <div class="form-text small">Informe a senha atual para confirmar alterações.</div>
+            <label class="form-label">Senha atual (necessária apenas se alterar senha)</label>
+            <input name="user[current_password]" v-model="currentPassword" type="password" class="form-control" :required="newPassword.length > 0" />
+            <div class="form-text small">Deixe em branco para atualizar apenas nome, e‑mail ou telefone.</div>
           </div>
 
           <div class="d-grid mb-2">
@@ -137,6 +153,7 @@ import { ref, onMounted, computed } from 'vue'
 const csrf = ref(document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '')
 const name = ref('')
 const email = ref('')
+const phone = ref('')
 const currentPassword = ref('')
 const user = ref(null)
 
@@ -150,6 +167,7 @@ const mismatch = computed(() =>
 
 const formError = ref('')
 const formSuccess = ref('')
+const phoneError = ref('')
 
 // Estados para exclusão de conta
 const showDeleteConfirmation = ref(false)
@@ -170,6 +188,7 @@ onMounted(async () => {
       if (data) {
         name.value = data.name || ''
         email.value = data.email || ''
+        phone.value = data.phone || ''
       }
     }
   } catch (e) {
@@ -181,9 +200,22 @@ onMounted(async () => {
 const submitForm = async () => {
   formError.value = ''
   formSuccess.value = ''
+  phoneError.value = ''
 
-  if (!currentPassword.value) {
-    formError.value = 'Informe sua senha atual para confirmar alterações.'
+  const changingPassword = newPassword.value.length > 0 || newPasswordConfirmation.value.length > 0
+  if (changingPassword && !currentPassword.value) {
+    formError.value = 'Informe sua senha atual para alterar a senha.'
+    return
+  }
+
+  // valida telefone
+  if (!phone.value) {
+    phoneError.value = 'Telefone é obrigatório.'
+    return
+  }
+  const phoneDigits = phone.value.replace(/\D/g,'')
+  if (phoneDigits.length < 10 || phoneDigits.length > 15) {
+    phoneError.value = 'Telefone inválido. Use DDD + número (10-15 dígitos).'
     return
   }
 
@@ -204,8 +236,11 @@ const submitForm = async () => {
       user: {
         name: name.value,
         email: email.value,
-        current_password: currentPassword.value
+        phone: phone.value
       }
+    }
+    if (changingPassword) {
+      payload.user.current_password = currentPassword.value
     }
     if (newPassword.value) {
       payload.user.password = newPassword.value

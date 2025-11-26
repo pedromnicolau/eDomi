@@ -12,6 +12,11 @@ class User < ApplicationRecord
 
   # cria automaticamente uma Person associada após criar o User (se ainda não houver)
   after_create :ensure_person_exists
+  before_validation :normalize_phone
+
+  # Validação de telefone (opcional para existir conta; obrigatório para solicitar visita no controller)
+  # Aceita dígitos com ou sem +; normalizamos removendo caracteres não numéricos.
+  validates :phone, allow_blank: true, format: { with: /\A\+?\d{10,15}\z/, message: "inválido. Use somente números (DDD + número). Ex: 11987654321" }
 
   def display_name
     name.presence || email
@@ -48,6 +53,17 @@ class User < ApplicationRecord
   end
 
   private
+
+  def normalize_phone
+    return if phone.blank?
+    digits = phone.gsub(/\D/, "")
+    # Se começar com '55' mantemos +55, senão apenas dígitos.
+    if digits.start_with?("55")
+      self.phone = "+#{digits}"
+    else
+      self.phone = digits
+    end
+  end
 
   def ensure_person_exists
     return if person.present?

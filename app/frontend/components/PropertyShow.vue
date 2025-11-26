@@ -56,10 +56,13 @@
         <div class="mt-3">
           <router-link :to="{ name: 'properties-edit', params: { id: property.id } }" v-if="canEdit" class="btn btn-secondary me-2">Editar</router-link>
           <router-link to="/" class="btn btn-outline-primary">Voltar</router-link>
-          <button @click="handleScheduleClick" class="btn btn-primary ms-2">
+          <button @click="handleScheduleClick" class="btn btn-primary ms-2" :disabled="missingPhone">
             {{ showScheduler ? 'Cancelar' : 'Agendar visita' }}
           </button>
           <a :href="whatsappLink" target="_blank" rel="noopener" class="btn btn-success ms-2">Contatar via WhatsApp</a>
+        </div>
+        <div v-if="missingPhone" class="alert alert-warning mt-3 p-2 small mb-0" data-autoclose="false">
+          Para solicitar uma visita você precisa cadastrar seu telefone no perfil. <router-link to="/users/edit">Atualizar perfil</router-link>.
         </div>
 
         <!-- MAPA -->
@@ -156,6 +159,14 @@ const property = ref(null)
 const loading = ref(true)
 const error = ref(null)
 const currentUser = ref(null)
+// Mantém aviso persistente: só considera telefone válido se tiver pelo menos 10 dígitos
+const userHasPhone = computed(() => {
+  if (!currentUser.value) return false
+  const raw = String(currentUser.value.phone || '')
+  const digits = raw.replace(/\D/g,'')
+  return digits.length >= 10
+})
+const missingPhone = computed(() => !!currentUser.value && !userHasPhone.value)
 
 // scheduler state
 const showScheduler = ref(false)
@@ -174,15 +185,12 @@ const whatsappLink = computed(() => {
   return `https://wa.me/${phone}?text=${text}`
 })
 
-// google maps links by CEP
 const mapsQuery = computed(() => {
   if (!property.value || !property.value.zip_code) return ''
-  // Use only the CEP to avoid mismatched addresses; include country for accuracy
   return encodeURIComponent(`${property.value.zip_code} Brasil`)
 })
 const mapsEmbedUrl = computed(() => {
   if (!mapsQuery.value) return 'about:blank'
-  // Public embed that doesn't require API key
   return `https://www.google.com/maps?q=${mapsQuery.value}&hl=pt-BR&z=15&output=embed`
 })
 const mapsDirectLink = computed(() => {
@@ -190,7 +198,6 @@ const mapsDirectLink = computed(() => {
   return `https://www.google.com/maps?q=${mapsQuery.value}`
 })
 
-// gallery / lightbox / carousel
 const selectedPhoto = ref(0)
 const photos = computed(() => (property.value && property.value.photos_urls) ? property.value.photos_urls : [])
 const lightboxOpen = ref(false)
@@ -211,7 +218,9 @@ onBeforeUnmount(() => {
 const fetchCurrent = async () => {
   try {
     const res = await fetch('/current_user')
-    if (res.ok) currentUser.value = await res.json()
+    if (res.ok) {
+      currentUser.value = await res.json()
+    }
   } catch {}
 }
 
@@ -352,6 +361,10 @@ const csrfToken = () => document.querySelector('meta[name="csrf-token"]')?.getAt
 // handle schedule button
 const handleScheduleClick = () => {
   if (currentUser.value) {
+    if (missingPhone.value) {
+      window.location.href = '/users/edit'
+      return
+    }
     showScheduler.value = !showScheduler.value
     return
   }

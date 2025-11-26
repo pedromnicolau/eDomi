@@ -28,6 +28,7 @@ class VisitsController < ApplicationController
         buyer_id: v.buyer_id,
         buyer_name: v.buyer.try(:name),
         buyer_email: v.buyer.try(:email),
+        buyer_phone: v.buyer.try(:phone),
         agent_id: v.agent_id,
         agent_name: v.agent.try(:name),
         agent_email: v.agent.try(:email),
@@ -41,6 +42,10 @@ class VisitsController < ApplicationController
   def create
     property = Property.find_by(id: visit_params[:property_id])
     return render json: { error: "Imóvel não encontrado" }, status: :not_found unless property
+
+    unless current_user.phone.present?
+      return render json: { error: "Para solicitar uma visita, adicione seu telefone no perfil." }, status: :unprocessable_entity
+    end
 
     @visit = Visit.new(visit_params.except(:agent_id))
     @visit.agent_id = property.agent_id

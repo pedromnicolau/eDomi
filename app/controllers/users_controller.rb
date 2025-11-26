@@ -33,7 +33,8 @@ class UsersController < ApplicationController
         id: current_user.id,
         email: current_user.email,
         name: current_user.name,
-        role: current_user.role
+        role: current_user.role,
+        phone: current_user.phone
       }
     else
       render json: nil, status: :ok
@@ -41,10 +42,25 @@ class UsersController < ApplicationController
   end
 
   def update
-    if current_user.update(user_params)
+    attrs = filtered_update_params
+    # Se não está alterando senha, removemos campos de senha para evitar validações desnecessárias
+    changing_password = attrs[:password].present? || attrs[:password_confirmation].present?
+    unless changing_password
+      attrs.delete(:password)
+      attrs.delete(:password_confirmation)
+      attrs.delete(:current_password)
+    end
+
+    if current_user.update(attrs)
       render json: current_user
     else
       render json: { error: current_user.errors.full_messages.join(", ") }, status: :unprocessable_entity
     end
+  end
+
+  private
+
+  def filtered_update_params
+    params.require(:user).permit(:name, :email, :phone, :current_password, :password, :password_confirmation)
   end
 end

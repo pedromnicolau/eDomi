@@ -5,5 +5,6 @@ FactoryBot.define do
     password_confirmation { "password" }
     name { "Test User" }
     role { :buyer }
+    phone { "11987654321" }
   end
 end
