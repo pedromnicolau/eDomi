@@ -62,6 +62,26 @@
           <a :href="whatsappLink" target="_blank" rel="noopener" class="btn btn-success ms-2">Contatar via WhatsApp</a>
         </div>
 
+        <!-- MAPA -->
+        <div v-if="property.zip_code" class="mt-4">
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <h5 class="mb-0">Localização</h5>
+            <a :href="mapsDirectLink" target="_blank" rel="noopener" class="small">Abrir no Google Maps</a>
+          </div>
+          <div class="map-embed-wrapper">
+            <iframe
+              :src="mapsEmbedUrl"
+              width="100%"
+              height="360"
+              style="border:0;"
+              allowfullscreen=""
+              loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade"
+            ></iframe>
+          </div>
+          <div class="small text-muted mt-1">CEP: {{ property.zip_code }}</div>
+        </div>
+
         <!-- SCHEDULER -->
         <div v-if="showScheduler" class="mt-3 p-3 border rounded shadow-sm bg-white">
           <!-- Data -->
@@ -152,6 +172,22 @@ const whatsappLink = computed(() => {
   const phone = '5513978252727'
   const text = encodeURIComponent(`Olá, tenho interesse no imóvel "${property.value.title}"`)
   return `https://wa.me/${phone}?text=${text}`
+})
+
+// google maps links by CEP
+const mapsQuery = computed(() => {
+  if (!property.value || !property.value.zip_code) return ''
+  // Use only the CEP to avoid mismatched addresses; include country for accuracy
+  return encodeURIComponent(`${property.value.zip_code} Brasil`)
+})
+const mapsEmbedUrl = computed(() => {
+  if (!mapsQuery.value) return 'about:blank'
+  // Public embed that doesn't require API key
+  return `https://www.google.com/maps?q=${mapsQuery.value}&hl=pt-BR&z=15&output=embed`
+})
+const mapsDirectLink = computed(() => {
+  if (!mapsQuery.value) return '#'
+  return `https://www.google.com/maps?q=${mapsQuery.value}`
 })
 
 // gallery / lightbox / carousel
@@ -351,4 +387,6 @@ const handleScheduleClick = () => {
   .property-gallery .main-photo img { height: 220px; }
   .thumb { width: 64px; height: 48px; }
 }
+/* mapa */
+.map-embed-wrapper { border-radius: 6px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.06); }
 </style>
