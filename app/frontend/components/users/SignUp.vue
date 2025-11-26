@@ -46,6 +46,24 @@
 
         <hr />
 
+        <!-- Botão Google OAuth -->
+        <div class="text-center my-3">
+          <span class="text-muted small">ou</span>
+        </div>
+        <div class="d-grid mb-3">
+          <a :href="googleAuthUrl" class="google-btn" aria-label="Criar conta com Google">
+            <span class="google-icon" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+                <path fill="#EA4335" d="M9 3.48c1.69 0 3.2.58 4.39 1.54l2.93-2.93C14.94.69 12.15 0 9 0 5.48 0 2.41 1.64.44 4.1l3.42 2.66C4.9 4.35 6.8 3.48 9 3.48z"/>
+                <path fill="#34A853" d="M17.64 9.2c0-.64-.06-1.25-.18-1.84H9v3.48h4.84c-.21 1.14-.84 2.1-1.8 2.74l2.77 2.15c1.62-1.49 2.83-3.69 2.83-6.53z"/>
+                <path fill="#FBBC05" d="M3.86 10.86A5.52 5.52 0 0 1 3.56 9c0-.64.11-1.26.3-1.86L.44 4.1A8.98 8.98 0 0 0 0 9c0 1.45.35 2.82.97 4.03l2.89-2.17z"/>
+                <path fill="#4285F4" d="M9 18c2.43 0 4.47-.8 5.96-2.17l-2.77-2.15c-.77.52-1.76.83-3.19.83-2.2 0-4.1-1.47-4.77-3.45L.97 13.03C2.94 16.36 5.73 18 9 18z"/>
+              </svg>
+            </span>
+            <span class="google-text">Criar conta com Google</span>
+          </a>
+        </div>
+
         <div class="text-center small">
           Já tem conta? <router-link to="/users/sign_in">Entrar</router-link>
         </div>
@@ -55,7 +73,8 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 
 const csrf = ref(document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '')
 
@@ -85,6 +104,8 @@ const isValid = computed(() => {
 
 const submitting = ref(false)
 const error = ref(null)
+const googleAuthUrl = '/users/auth/google_oauth2'
+const router = useRouter()
 
 // novo computed que define quando o alerta NÃO deve auto-fechar
 const noAutoClose = computed(() => {
@@ -179,6 +200,17 @@ const onSubmit = async () => {
     submitting.value = false
   }
 }
+
+onMounted(() => {
+  const q = router.currentRoute.value.query
+  if (q && q.error) {
+    const msg = Array.isArray(q.error) ? q.error[0] : q.error
+    error.value = String(msg)
+    const url = new URL(window.location.href)
+    url.searchParams.delete('error')
+    window.history.replaceState({}, '', url.toString())
+  }
+})
 </script>
 
 <style scoped>
@@ -186,4 +218,29 @@ const onSubmit = async () => {
 @media (max-width: 576px) {
   .card { margin: 0 1rem; }
 }
+</style>
+
+<style scoped>
+.google-btn {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 44px;
+  padding: 0 16px;
+  border: 1px solid #dadce0;
+  border-radius: 4px;
+  background: #fff;
+  color: #3c4043;
+  text-decoration: none;
+  font-weight: 500;
+  box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+  transition: background .2s ease, box-shadow .2s ease;
+}
+.google-btn:hover { background: #f7f8f8; box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+.google-btn:active { background: #eee; }
+.google-btn:focus { outline: none; box-shadow: 0 0 0 3px rgba(66,133,244,.3); }
+.google-icon { width: 18px; height: 18px; display: inline-flex; }
+.google-text { font-size: 14px; line-height: 1; }
 </style>

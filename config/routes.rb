@@ -3,7 +3,8 @@ Rails.application.routes.draw do
   devise_for :users, controllers: {
     sessions: "users/sessions",
     registrations: "users/registrations",
-    passwords: "users/passwords"
+    passwords: "users/passwords",
+    omniauth_callbacks: "users/omniauth_callbacks"
   }, skip: [ :sessions, :registrations, :passwords ]
 
   # Rotas Devise customizadas para API/SPA
@@ -22,6 +23,9 @@ Rails.application.routes.draw do
     post "users/password", to: "users/passwords#create"
     put "users/password", to: "users/passwords#update"
     patch "users/password", to: "users/passwords#update"
+
+    # First-time password setup for OAuth users
+    post "users/password/set", to: "users/passwords#set"
   end
 
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html

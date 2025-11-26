@@ -1,8 +1,9 @@
 class User < ApplicationRecord
-  # Include default devise modules. Others available are:
-  # :confirmable, :lockable, :timeoutable, :trackable and :omniauthable
-  devise :database_authenticatable, :registerable,
-         :recoverable, :rememberable, :validatable
+    # Include default devise modules. Others available are:
+    # :confirmable, :lockable, :timeoutable, :trackable and :omniauthable
+    devise :database_authenticatable, :registerable,
+      :recoverable, :rememberable, :validatable,
+      :omniauthable, omniauth_providers: [ :google_oauth2 ]
 
   enum :role, { buyer: 0, agent: 1, admin: 2 }
 
@@ -14,6 +15,36 @@ class User < ApplicationRecord
 
   def display_name
     name.presence || email
+  end
+
+  def self.from_omniauth(auth)
+    return nil unless auth
+
+    provider = auth.provider
+    uid = auth.uid
+    info = auth.info || {}
+    email = info.email.to_s.downcase
+    name = info.name.presence || info.first_name || info.last_name || email
+
+    user = where(provider: provider, uid: uid).first
+    return user if user
+
+    if email.present?
+      user = find_by(email: email)
+      if user
+        user.update(provider: provider, uid: uid)
+        return user
+      end
+    end
+
+    create(
+      provider: provider,
+      uid: uid,
+      email: email.presence || "user-#{provider}-#{uid}@example.invalid",
+      name: name,
+      password: Devise.friendly_token[0, 20],
+      must_set_password: true
+    )
   end
 
   private

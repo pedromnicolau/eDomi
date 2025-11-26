@@ -37,10 +37,10 @@ class Users::SessionsController < Devise::SessionsController
   protected
 
   def respond_to_on_destroy
-    if request.format.json?
+    if request.format.json? || request.xhr? || request.headers['Accept'].to_s.include?('application/json')
       head :no_content
     else
-      redirect_to root_path
+      redirect_to root_path, status: :see_other
     end
   end
 end

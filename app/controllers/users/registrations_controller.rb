@@ -29,6 +29,7 @@ class Users::RegistrationsController < Devise::RegistrationsController
 
     if account_update_params[:current_password].present?
       if resource.update_with_password(account_update_params)
+        bypass_sign_in(resource)
         render json: { name: resource.name, email: resource.email }, status: :ok
       else
         render json: { error: resource.errors.full_messages.join(", ") }, status: :unprocessable_entity
@@ -55,10 +56,20 @@ class Users::RegistrationsController < Devise::RegistrationsController
       return
     end
 
-    resource.destroy
-    Devise.sign_out_all_scopes ? sign_out : sign_out(resource_name)
-
-    render json: { message: "Conta excluída com sucesso" }, status: :ok
+    begin
+      resource.destroy
+      Devise.sign_out_all_scopes ? sign_out : sign_out(resource_name)
+      render json: { message: "Conta excluída com sucesso" }, status: :ok
+    rescue ActiveRecord::InvalidForeignKey => e
+      # identifica imóveis vinculados ao usuário (como corretor)
+      props = Property.where(agent_id: resource.id).select(:id, :title).order(:id)
+      render json: {
+        error: "Não foi possível excluir sua conta: existem imóveis associados a ela.",
+        reason: "O usuário é responsável por um ou mais imóveis.",
+        properties: props.map { |p| { id: p.id, title: p.title } },
+        action_required: "Transfira a responsabilidade (corretor) desses imóveis para um usuário administrador ou corretor antes de excluir sua conta."
+      }, status: :unprocessable_entity
+    end
   end
 
   protected

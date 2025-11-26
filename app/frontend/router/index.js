@@ -10,6 +10,7 @@ import EditProfile from '@/components/users/EditProfile.vue'
 import ChangePassword from '@/components/users/ChangePassword.vue'
 import ForgotPassword from '@/components/users/ForgotPassword.vue'
 import ResetPassword from '@/components/users/ResetPassword.vue'
+import SetPassword from '@/components/users/SetPassword.vue'
 import CalendarView from '@/components/CalendarView.vue'
 import Privacy from '@/components/Privacy.vue'
 import Terms from '@/components/Terms.vue'
@@ -37,6 +38,7 @@ const routes = [
   { path: '/users/password/change', name: 'user-password-change', component: ChangePassword },
   { path: '/users/password/new', name: 'forgot-password', component: ForgotPassword },
   { path: '/users/password/edit', name: 'reset-password', component: ResetPassword },
+  { path: '/users/password/set', name: 'set-password', component: SetPassword },
   { path: '/calendar', name: 'calendar', component: CalendarView },
   { path: '/privacy', name: 'privacy', component: Privacy },
   { path: '/terms', name: 'terms', component: Terms },

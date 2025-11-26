@@ -67,3 +67,7 @@ gem "devise", "~> 4.9"
 gem "resend", "~> 0.10"
 
 gem "dotenv-rails", groups: [:development, :test]
+
+# OmniAuth Google
+gem "omniauth-google-oauth2", "~> 1.1"
+gem "omniauth-rails_csrf_protection", "~> 1.0"

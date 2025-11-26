@@ -97,7 +97,7 @@ Devise.setup do |config|
   # Notice that if you are skipping storage for all authentication paths, you
   # may want to disable generating routes to Devise's sessions controller by
   # passing skip: :sessions to `devise_for` in your config/routes.rb
-  config.skip_session_storage = [ :http_auth ]
+  # config.skip_session_storage = [ :http_auth ]
 
   # By default, Devise cleans up the CSRF token on authentication to
   # avoid CSRF token fixation attacks. This means that, when using AJAX
@@ -164,7 +164,7 @@ Devise.setup do |config|
 
   # ==> Configuration for :rememberable
   # The time the user will be remembered without asking for credentials again.
-  # config.remember_for = 2.weeks
+  config.remember_for = 2.weeks
 
   # Invalidates all the remember me tokens when the user signs out.
   config.expire_all_remember_me_on_sign_out = true
@@ -272,6 +272,19 @@ Devise.setup do |config|
   # Add a new OmniAuth provider. Check the wiki for more information on setting
   # up on your models and hooks.
   # config.omniauth :github, 'APP_ID', 'APP_SECRET', scope: 'user,public_repo'
+  # Google OAuth2 via OmniAuth
+  if ENV["GOOGLE_CLIENT_ID"].present? && ENV["GOOGLE_CLIENT_SECRET"].present?
+    require "omniauth/rails_csrf_protection"
+    OmniAuth.config.allowed_request_methods = %i[get post]
+    config.omniauth :google_oauth2,
+      ENV["GOOGLE_CLIENT_ID"],
+      ENV["GOOGLE_CLIENT_SECRET"],
+      scope: "email,profile",
+      prompt: "select_account",
+      image_aspect_ratio: "square",
+      image_size: 50,
+      access_type: "offline"
+  end
 
   # ==> Warden configuration
   # If you want to use other strategies, that are not supported by Devise, or

@@ -103,6 +103,18 @@
               </select>
             </div>
 
+            <!-- seletor de corretor responsável (visível apenas para agentes/admins) -->
+            <div v-if="canEditAgent" class="col-md-12">
+              <label class="form-label">Corretor responsável</label>
+              <select class="form-select" v-model.number="form.agent_id">
+                <option :value="null">Selecione um corretor...</option>
+                <option v-for="a in agents" :key="a.id" :value="a.id">
+                  {{ a.name || a.email }}
+                </option>
+              </select>
+              <div class="form-text small">Somente administradores e corretores podem alterar este campo.</div>
+            </div>
+
             <div class="col-12">
               <div class="form-check form-switch mt-2">
                 <input class="form-check-input" type="checkbox" id="furnished" v-model="form.furnished" />
@@ -209,6 +221,12 @@ const form = ref({
   description: ''
 })
 
+// controle de quem é o corretor responsável (visível somente para agentes/admins)
+const currentUser = ref(null)
+const canEditAgent = ref(false)
+const agents = ref([]) // lista combinada de opções (admins + agentes conforme regras)
+form.value.agent_id = null // id do corretor responsável
+
 const loading = ref(false)
 const error = ref(null)
 // novo ref persistente para a mensagem de validação que não deve sumir automaticamente
@@ -260,7 +278,8 @@ const load = async () => {
       iptu: data.iptu ?? 0.0,
       year_built: data.year_built ?? null,
       status: data.status ?? 'available',
-      description: data.description ?? ''
+      description: data.description ?? '',
+      agent_id: data.agent_id ?? null
     })
     existingPhotos.value = data.photos_data || []
   } catch (e) {
@@ -271,6 +290,37 @@ const load = async () => {
 }
 
 onMounted(load)
+
+// carrega usuário atual e lista de agentes para o seletor
+onMounted(async () => {
+  try {
+    const ures = await fetch('/current_user', { credentials: 'same-origin' })
+    if (ures.ok) {
+      currentUser.value = await ures.json()
+      canEditAgent.value = !!currentUser.value && (currentUser.value.role === 'admin' || currentUser.value.role === 'agent')
+      if (canEditAgent.value) {
+        // regras: se agente => mostrar todos admins + ele mesmo
+        // se admin => mostrar todos admins + todos agentes
+        const adminRes = await fetch('/users.json?role=2', { credentials: 'same-origin' })
+        let admins = []
+        if (adminRes.ok) admins = await adminRes.json()
+
+        if (currentUser.value.role === 'agent') {
+          agents.value = [ ...admins.filter(a => a.id !== currentUser.value.id), currentUser.value ]
+          form.value.agent_id = currentUser.value.id // default para agente
+        } else if (currentUser.value.role === 'admin') {
+          const agentRes = await fetch('/users.json?role=1', { credentials: 'same-origin' })
+          let corr = []
+          if (agentRes.ok) corr = await agentRes.json()
+          agents.value = [ ...admins, ...corr ]
+          form.value.agent_id = form.value.agent_id || currentUser.value.id
+        }
+        // ordena por nome/email
+        agents.value.sort((a,b) => (a.name||a.email||'').localeCompare(b.name||b.email||''))
+      }
+    }
+  } catch {}
+})
 
 // revoke object URLs on unmount
 onBeforeUnmount(() => {
@@ -443,5 +493,10 @@ const closePersistentError = () => {
 
 .btn-outline-secondary:hover {
   background-color: #f1f1f1;
+}
+
+/* destaque leve para o seletor de corretor responsável */
+select.form-select[v-model="form.agent_id"] {
+  border-color: #e9ecef;
 }
 </style>

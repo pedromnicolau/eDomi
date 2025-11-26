@@ -11,6 +11,9 @@ pt-BR:
         invalid: "O email informado é inválido."
         taken: "Já existe uma conta com esse email"
   activerecord:
+    attributes:
+      user:
+        current_password: "Senha atual"
     errors:
       messages:
         invalid: "é inválido"
@@ -21,6 +24,8 @@ pt-BR:
       models:
         user:
           attributes:
+            current_password:
+              invalid: "é inválida"
             password:
               too_short: "é muito curto (mínimo %{count} caracteres)"
               blank: "não pode ficar em branco"

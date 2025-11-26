@@ -81,6 +81,21 @@
             </div>
 
             <div v-if="deleteError" class="text-danger small mb-2">{{ deleteError }}</div>
+            <div v-if="blockedProperties.length" class="alert alert-warning small" data-autoclose="false">
+              <div class="mb-2">
+                <strong>Motivo:</strong> Existem imóveis associados à sua conta como corretor responsável.
+              </div>
+              <div class="mb-2">Transfira a responsabilidade destes imóveis para um <em>corretor</em> ou <em>administrador</em> antes de excluir sua conta:</div>
+              <ul class="mb-2">
+                <li v-for="p in blockedProperties" :key="p.id">
+                  <router-link :to="`/properties/${p.id}/edit`" class="text-decoration-none">
+                    #{{ p.id }} — {{ p.title || 'Imóvel sem título' }} (editar)
+                  </router-link>
+                </li>
+              </ul>
+              <div>
+                Vá até cada imóvel e altere o campo “Corretor responsável”.</div>
+            </div>
 
             <div class="d-flex gap-2">
               <button
@@ -141,11 +156,15 @@ const showDeleteConfirmation = ref(false)
 const deletePassword = ref('')
 const deleteError = ref('')
 const deletingAccount = ref(false)
+const blockedProperties = ref([])
 
 // busca usuário atual
 onMounted(async () => {
   try {
-    const res = await fetch('/current_user', { credentials: 'same-origin' })
+    const res = await fetch('/current_user.json', {
+      credentials: 'same-origin',
+      headers: { 'Accept': 'application/json' }
+    })
     if (res.ok) {
       const data = await res.json()
       if (data) {
@@ -242,10 +261,11 @@ const confirmDelete = async () => {
   deletingAccount.value = true
 
   try {
-    const res = await fetch('/users', {
+    const res = await fetch('/users.json', {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
         'X-CSRF-Token': csrf.value
       },
       credentials: 'same-origin',
@@ -260,9 +280,11 @@ const confirmDelete = async () => {
 
     if (res.ok) {
       // Redireciona para home após exclusão bem-sucedida
+      try { localStorage.setItem('accountDeleted', '1') } catch {}
       window.location.href = '/'
     } else {
-      deleteError.value = (data && data.error) || 'Erro ao excluir conta.'
+      deleteError.value = (data && (data.error || data.message)) || 'Erro ao excluir conta.'
+      blockedProperties.value = (data && data.properties) || []
       deletingAccount.value = false
     }
   } catch (e) {

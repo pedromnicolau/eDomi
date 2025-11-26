@@ -50,15 +50,30 @@ class PropertiesController < ApplicationController
   end
 
   def create
-    # only agents and admins reach here (authorize_create!)
-    # não passar os campos de endereço para mass-assignment no Property (evita AssociationTypeMismatch)
-    @property = Property.new(property_params.except(
+    permitted = property_params
+    @property = Property.new(permitted.except(
       :uploaded_photos, :remove_photo_blob_ids,
-      :address, :neighborhood, :city, :state, :zip_code, :country
+      :address, :neighborhood, :city, :state, :zip_code, :country, :agent_id
     ))
 
-    # atribui o criador como agente do imóvel (agent_id)
-    @property.agent = current_user
+    # regra de atribuição do corretor responsável
+    chosen_id = permitted[:agent_id]
+    chosen = User.find_by(id: chosen_id) if chosen_id.present?
+    if current_user.admin?
+      # admin pode escolher qualquer admin ou agente; fallback para ele mesmo
+      if chosen && (chosen.admin? || chosen.agent?)
+        @property.agent = chosen
+      else
+        @property.agent = current_user
+      end
+    elsif current_user.agent?
+      # agente pode escolher somente ele mesmo ou um admin
+      if chosen && (chosen.admin? || chosen.id == current_user.id)
+        @property.agent = chosen
+      else
+        @property.agent = current_user
+      end
+    end
     if @property.save
       # attach uploaded files diretamente (uma única operação) se presentes
       if property_params[:uploaded_photos].present?
@@ -75,10 +90,27 @@ class PropertiesController < ApplicationController
   end
 
   def update
-    # também excluir campos de endereço no update (endereço será tratado por sync_address!)
-    if @property.update(property_params.except(
+    permitted = property_params
+
+    # mudança de agente responsável conforme regras
+    if permitted.key?(:agent_id)
+      new_agent_id = permitted[:agent_id]
+      candidate = User.find_by(id: new_agent_id) if new_agent_id.present?
+      if current_user.admin?
+        if candidate && (candidate.admin? || candidate.agent?)
+          @property.agent = candidate unless @property.agent_id == candidate.id
+        end
+      elsif current_user.agent? && @property.agent_id == current_user.id
+        # agente só pode transferir para admin ou manter em si
+        if candidate && (candidate.admin? || candidate.id == current_user.id)
+          @property.agent = candidate unless @property.agent_id == candidate.id
+        end
+      end
+    end
+
+    if @property.update(permitted.except(
       :uploaded_photos, :remove_photo_blob_ids,
-      :address, :neighborhood, :city, :state, :zip_code, :country
+      :address, :neighborhood, :city, :state, :zip_code, :country, :agent_id
     ))
       # remove attachments indicados (se houver)
       if property_params[:remove_photo_blob_ids].present?

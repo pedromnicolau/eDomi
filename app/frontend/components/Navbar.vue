@@ -96,7 +96,7 @@
               </button>
 
               <div v-if="dropdownOpen" class="dropdown-menu-custom shadow-sm">
-                <a class="dropdown-item" href="/users/edit">Perfil</a>
+                <router-link class="dropdown-item" to="/users/edit" @click.native="dropdownOpen=false">Perfil</router-link>
                 <div class="dropdown-divider"></div>
                 <button class="dropdown-item text-danger" @click="logout" type="button">Sair</button>
               </div>
@@ -142,7 +142,10 @@ const getCsrf = () => document.querySelector('meta[name="csrf-token"]')?.getAttr
 
 const fetchCurrent = async () => {
   try {
-    const res = await fetch('/current_user', { credentials: 'same-origin' })
+    const res = await fetch('/current_user.json', {
+      credentials: 'same-origin',
+      headers: { 'Accept': 'application/json' }
+    })
     if (res.ok) {
       const data = await res.json()
       user.value = data
@@ -346,13 +349,15 @@ const logout = async () => {
   try {
     const res = await fetch('/users/sign_out', {
       method: 'DELETE',
-      headers: { 'X-CSRF-Token': getCsrf() },
+      headers: { 'X-CSRF-Token': getCsrf(), 'Accept': 'application/json' },
       credentials: 'same-origin'
     })
-    if (res.ok || res.status === 302 || res.status === 204) {
-      window.location.reload()
+    if (res.ok || res.status === 204) {
+      window.location.href = '/'
+    } else if (res.status === 303) {
+      window.location.href = '/'
     } else {
-      const txt = await res.text()
+      const txt = await res.text().catch(() => '')
       alert('Falha no logout: ' + txt)
     }
   } catch (e) {
