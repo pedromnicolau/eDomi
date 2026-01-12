@@ -15,21 +15,22 @@
             <input name="user[email]" v-model="email" type="email" class="form-control" required />
           </div>
 
-                  <div class="mb-3">
-                    <label class="form-label">Telefone</label>
-                    <input
-                      name="user[phone]"
-                      v-model="phone"
-                      type="tel"
-                      class="form-control"
-                      :class="{ 'is-invalid': phoneError }"
-                      placeholder="Ex: 11987654321"
-                      pattern="\+?\d{10,15}"
-                      required
-                    />
-                    <div class="form-text small">Informe seu número com DDD. Apenas dígitos (pode iniciar com +).</div>
-                    <div v-if="phoneError" class="invalid-feedback small">{{ phoneError }}</div>
-                  </div>
+                          <div class="mb-3">
+                            <label class="form-label">Telefone</label>
+                            <input
+                              name="user[phone]"
+                              v-model="phone"
+                              type="tel"
+                              class="form-control"
+                              :class="{ 'is-invalid': phoneError }"
+                              placeholder="Ex: (11) 98765-4321 ou +55 11 98765-4321"
+                              pattern="\+?\d{10,15}"
+                              required
+                              @input="onPhoneInput"
+                            />
+                            <div class="form-text small">Informe seu número com DDD. Formatos aceitos: (11) 98765-4321 ou +55 11 98765-4321.</div>
+                            <div v-if="phoneError" class="invalid-feedback small">{{ phoneError }}</div>
+                          </div>
 
           <hr class="my-4">
 
@@ -149,6 +150,7 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+import { useRoute } from 'vue-router'
 
 const csrf = ref(document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '')
 const name = ref('')
@@ -156,6 +158,78 @@ const email = ref('')
 const phone = ref('')
 const currentPassword = ref('')
 const user = ref(null)
+
+const route = useRoute()
+
+// Se o usuário veio do fluxo de agendamento, tornamos o telefone obrigatório
+const requirePhone = computed(() => {
+  try {
+    const v = route.query.require_phone
+    return String(v) === '1' || String(v) === 'true'
+  } catch (e) { return false }
+})
+
+// Validação simples e prática de telefone:
+// - remove quaisquer caracteres não numéricos
+// - aceita números com ou sem código de país (ex: 11987654321 ou 5511987654321)
+// - para BR: aceita 10 ou 11 dígitos (DDD + número). Se incluir código 55, aceita 12 ou 13.
+const isValidPhone = (p) => {
+  if (!p) return false
+  const digits = String(p).replace(/\D/g, '')
+  if (digits.length < 10 || digits.length > 13) return false
+  // se tiver código do país (55), o restante deve ser 10 ou 11
+  if (digits.startsWith('55')) {
+    const rest = digits.slice(2)
+    return rest.length === 10 || rest.length === 11
+  }
+  // sem código do país: 10 ou 11 dígitos aceitáveis
+  return digits.length === 10 || digits.length === 11
+}
+
+// Formata telefone enquanto o usuário digita
+const formatPhone = (digits, keepPlus) => {
+  if (!digits) return ''
+  // remove zeros à esquerda desnecessários
+  let d = digits.replace(/^0+/, '')
+  let prefix = ''
+  if (d.startsWith('55')) {
+    prefix = '+55 '
+    d = d.slice(2)
+  }
+
+  // área (2 primeiros dígitos) quando disponíveis
+  const area = d.slice(0, 2)
+  const number = d.slice(2)
+
+  let formattedNumber = ''
+  if (!number) {
+    // somente área parcial
+    if (area) return prefix + (area.length === 2 ? `(${area})` : `(${area}`)
+    return prefix + d
+  }
+
+  if (number.length <= 4) {
+    formattedNumber = number
+  } else {
+    const last4 = number.slice(-4)
+    const first = number.slice(0, number.length - 4)
+    formattedNumber = `${first}-${last4}`
+  }
+
+  if (area) return prefix + `(${area}) ${formattedNumber}`
+  return prefix + formattedNumber
+}
+
+const onPhoneInput = (e) => {
+  try {
+    const raw = e.target.value || ''
+    const keepPlus = raw.trim().startsWith('+')
+    const digits = raw.replace(/\D/g, '')
+    phone.value = formatPhone(digits, keepPlus)
+  } catch (err) {
+    // fallback: não interrompe o typing
+  }
+}
 
 // novos campos de senha
 const newPassword = ref('')
@@ -208,15 +282,16 @@ const submitForm = async () => {
     return
   }
 
-  // valida telefone
-  if (!phone.value) {
-    phoneError.value = 'Telefone é obrigatório.'
+  // valida telefone: obrigatório apenas se veio do agendamento; mas se preenchido sempre validar formato
+  if (requirePhone.value && !phone.value) {
+    phoneError.value = 'Telefone é obrigatório para agendar visitas.'
     return
   }
-  const phoneDigits = phone.value.replace(/\D/g,'')
-  if (phoneDigits.length < 10 || phoneDigits.length > 15) {
-    phoneError.value = 'Telefone inválido. Use DDD + número (10-15 dígitos).'
-    return
+  if (phone.value) {
+    if (!isValidPhone(phone.value)) {
+      phoneError.value = 'Telefone inválido. Informe DDD + número (ex: 11987654321) ou com código +55.'
+      return
+    }
   }
 
   // validações de senha nova (se fornecida)
@@ -259,7 +334,7 @@ const submitForm = async () => {
 
      const data = await res.json().catch(() => null)
 
-     if (res.ok && data) {
+    if (res.ok && data) {
        formSuccess.value = 'Perfil atualizado com sucesso.'
        currentPassword.value = ''
        newPassword.value = ''
@@ -273,7 +348,7 @@ const submitForm = async () => {
        formError.value = (data && data.error) || 'Falha ao atualizar perfil.'
      }
 
-   } catch (e) {
+  } catch (e) {
      formError.value = e.message || 'Erro ao atualizar perfil.'
    }
 }

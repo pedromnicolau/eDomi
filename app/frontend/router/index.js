@@ -24,6 +24,7 @@ import AdminReportsCommissions from '@/components/admin/ReportsCommissions.vue'
 import AdminReportsVisits from '@/components/admin/ReportsVisits.vue'
 import AdminReportsPeople from '@/components/admin/ReportsPeople.vue'
 import AdminSalesList from '@/components/admin/SalesList.vue'
+import InternalDashboard from '@/components/InternalDashboard.vue'
 
 const routes = [
   { path: '/', name: 'home', component: PropertiesList },
@@ -42,6 +43,9 @@ const routes = [
   { path: '/calendar', name: 'calendar', component: CalendarView },
   { path: '/privacy', name: 'privacy', component: Privacy },
   { path: '/terms', name: 'terms', component: Terms },
+
+  // Internal environment (privileged users)
+  { path: '/internal', name: 'internal', component: InternalDashboard, meta: { requiresPrivileged: true } },
 
   // Admin cadastros (visíveis apenas a admins)
   { path: '/admin/reports/properties', name: 'admin-reports-imoveis', component: AdminReportsProperties, meta: { requiresAdmin: true } },

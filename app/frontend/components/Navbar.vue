@@ -7,35 +7,57 @@
         <router-link to="/" class="navbar-brand d-flex align-items-center">
           <img :src="logoSrc" class="logo-mark" alt="eDomi" />
         </router-link>
+        <!-- modo: Site público / Sistema interno (apenas admin/corretor) -->
+        <div v-if="isPrivileged" class="ms-2 position-relative" ref="modeRef">
+          <button
+            class="btn btn-mode-toggle"
+            type="button"
+            @click="toggleModeDropdown"
+            :aria-expanded="modeOpen"
+            aria-haspopup="true"
+          >
+            <i class="fa-solid fa-caret-down" aria-hidden="true"></i>
+          </button>
+
+          <div v-if="modeOpen" class="mode-menu shadow-sm">
+            <button class="dropdown-item" type="button" @click="setMode('public')">Site público</button>
+            <button class="dropdown-item" type="button" @click="setMode('internal')">Sistema interno</button>
+          </div>
+        </div>
       </div>
 
       <!-- menus centralizados -->
       <div class="mx-auto d-none d-lg-flex align-items-center">
-        <router-link to="/" class="btn btn-new mx-2">Imóveis</router-link>
-        <router-link to="/about" class="btn btn-new mx-2">Sobre</router-link>
-        <router-link to="/contact" class="btn btn-new mx-2">Contato</router-link>
-        <router-link to="/calendar" class="btn btn-new mx-2">Visitas</router-link>
+        <!-- Public mode: show regular site menus (no Relatórios) -->
+        <template v-if="mode === 'public'">
+          <router-link to="/" class="btn btn-new mx-2">Imóveis</router-link>
+          <router-link to="/about" class="btn btn-new mx-2">Sobre</router-link>
+          <router-link to="/contact" class="btn btn-new mx-2">Contato</router-link>
+          <router-link to="/calendar" class="btn btn-new mx-2">Visitas</router-link>
+        </template>
 
-        <!-- Cadastros dropdown (apenas admin) - controlado por Vue -->
-        <div v-if="isAdmin" class="nav-item mx-2 admin-items" ref="cadastrosRef">
-          <button
-            class="btn btn-new dropdown-toggle"
-            type="button"
-            @click="toggleCadastros"
-            :aria-expanded="cadastrosOpen"
-            aria-haspopup="true"
-          >
-            Relatórios
-          </button>
+        <!-- Internal mode: only show Relatórios (for privileged users) -->
+        <template v-else>
+          <div v-if="isPrivileged" class="nav-item mx-2 admin-items" ref="cadastrosRef">
+            <button
+              class="btn btn-new dropdown-toggle"
+              type="button"
+              @click="toggleCadastros"
+              :aria-expanded="cadastrosOpen"
+              aria-haspopup="true"
+            >
+              Relatórios
+            </button>
 
-          <div v-if="cadastrosOpen" class="cadastros-menu shadow-sm">
-            <router-link class="dropdown-item" to="/admin/reports/properties" @click="closeCadastros">Imóveis</router-link>
-            <router-link class="dropdown-item" to="/admin/reports/users" @click="closeCadastros">Usuários</router-link>
-            <router-link class="dropdown-item" to="/admin/reports/sales" @click="closeCadastros">Vendas</router-link>
-            <router-link class="dropdown-item" to="/admin/reports/commissions" @click="closeCadastros">Comissões</router-link>
-            <router-link class="dropdown-item" to="/admin/reports/visits" @click="closeCadastros">Visitas</router-link>
+            <div v-if="cadastrosOpen" class="cadastros-menu shadow-sm">
+              <router-link class="dropdown-item" to="/admin/reports/properties" @click="closeCadastros">Imóveis</router-link>
+              <router-link class="dropdown-item" to="/admin/reports/users" @click="closeCadastros">Usuários</router-link>
+              <router-link class="dropdown-item" to="/admin/reports/sales" @click="closeCadastros">Vendas</router-link>
+              <router-link class="dropdown-item" to="/admin/reports/commissions" @click="closeCadastros">Comissões</router-link>
+              <router-link class="dropdown-item" to="/admin/reports/visits" @click="closeCadastros">Visitas</router-link>
+            </div>
           </div>
-        </div>
+        </template>
       </div>
 
       <!-- ações (direita): notificações + auth -->
@@ -126,6 +148,11 @@ const logoSrc = '/logo_2.png'
 const notifications = ref([])
 const loadingNotifications = ref(false)
 
+// mode: 'public' | 'internal' (default public)
+const mode = ref('public')
+const modeOpen = ref(false)
+const modeRef = ref(null)
+
 /* dropdown state and ref para click-outside */
 const dropdownOpen = ref(false)
 const userDropdownRef = ref(null)
@@ -173,6 +200,9 @@ const isAgent = computed(() => {
   const r = user.value.role
   return r === 'agent' || r === '1' || r === 1
 })
+
+// privileged users (admin or agent)
+const isPrivileged = computed(() => isAdmin.value || isAgent.value)
 
 // no fetchNotifications
 const fetchNotifications = async () => {
@@ -229,6 +259,21 @@ const toggleCadastros = () => {
 }
 const closeCadastros = () => { cadastrosOpen.value = false }
 
+const toggleModeDropdown = () => { modeOpen.value = !modeOpen.value }
+const setMode = (m) => {
+  if (m !== 'public' && m !== 'internal') return
+  mode.value = m
+  try { localStorage.setItem('nav_mode', m) } catch (e) {}
+  modeOpen.value = false
+  // navigate to the corresponding main component
+  if (m === 'public') {
+    router.push({ name: 'home' }).catch(() => {})
+  } else {
+    // internal
+    router.push({ name: 'internal' }).catch(() => {})
+  }
+}
+
 /* atualiza onDocumentClick para fechar cadastros se clicar fora */
 const onDocumentClick = (e) => {
   if (dropdownOpen.value && userDropdownRef.value && !userDropdownRef.value.contains(e.target)) {
@@ -239,6 +284,9 @@ const onDocumentClick = (e) => {
   }
   if (cadastrosOpen.value && cadastrosRef.value && !cadastrosRef.value.contains(e.target)) {
     cadastrosOpen.value = false
+  }
+  if (modeOpen.value && modeRef.value && !modeRef.value.contains(e.target)) {
+    modeOpen.value = false
   }
 }
 
@@ -254,6 +302,23 @@ onMounted(async () => {
 
   // liga listener para fechar dropdowns ao clicar fora
   document.addEventListener('click', onDocumentClick)
+
+  // restaura modo salvo (se houver). padrão: public
+  try {
+    const stored = localStorage.getItem('nav_mode')
+    if (stored === 'internal') mode.value = 'internal'
+    else mode.value = 'public'
+  } catch (e) {
+    mode.value = 'public'
+  }
+  // navigate to persisted mode if privileged
+  try {
+    if (mode.value === 'internal' && isPrivileged.value) {
+      router.replace({ name: 'internal' }).catch(() => {})
+    } else {
+      router.replace({ name: 'home' }).catch(() => {})
+    }
+  } catch (e) {}
 
   // processa alertas já presentes e observa novos
   processExistingAlerts()
@@ -597,6 +662,32 @@ watch(user, async (v) => {
   box-shadow: 0 6px 24px rgba(0,0,0,0.12);
   padding: 0.25rem 0;
   z-index: 3000;
+}
+
+/* mode dropdown (next to logo) */
+.btn-mode-toggle {
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  padding: 0.15rem 0.35rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.btn-mode-toggle:hover { color: var(--secondary-green); }
+
+.mode-menu {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 6px);
+  min-width: 160px;
+  background: #ffffff;
+  border-radius: 0.35rem;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+  padding: 0.25rem 0;
+  z-index: 4000;
 }
 
 /* itens do menu */

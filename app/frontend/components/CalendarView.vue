@@ -90,6 +90,11 @@
               {{ v.property_title || ('Imóvel #' + v.property_id) }}
             </router-link>
 
+            <!-- mostrar endereço do imóvel quando disponível -->
+            <div v-if="v.property_address || v.address || v.property_location" class="small text-muted property-address">
+              {{ v.property_address || v.address || v.property_location }}
+            </div>
+
             <div v-else class="fw-semibold text-muted">
               {{ v.property_title || ('Imóvel desconhecido') }}
             </div>
@@ -106,14 +111,18 @@
                 </div>
           </div>
 
-          <div class="small text-end text-muted">
-            <div>{{ v.buyer_name || v.buyer_email || '' }}</div>
-            <div>{{ v.agent_name || v.agent_email || '' }}</div>
+          <div class="small text-end text-muted visit-right">
+            <div>Cliente: {{ v.buyer_name || v.buyer_email || '' }}</div>
+            <div>Corretor: {{ v.agent_name || v.agent_email || '' }}</div>
 
             <!-- Ações do anunciante (aceitar / recusar) -->
             <div v-if="canManageVisit(v)" class="mt-2 d-flex gap-2 justify-content-end">
               <button v-if="v.status === 'pending'" class="btn btn-sm btn-success" @click="acceptVisit(v.id)" :disabled="actionLoading[v.id]">Aceitar</button>
               <button v-if="v.status === 'pending'" class="btn btn-sm btn-outline-danger" @click="rejectVisit(v.id)" :disabled="actionLoading[v.id]">Recusar</button>
+            </div>
+
+            <div v-if="v.status === 'confirmed'" class="mt-2 small text-success confirmed-badge">
+              ✓ Visita confirmada
             </div>
           </div>
         </li>
@@ -451,4 +460,18 @@ onMounted(async () => {
 .badge-status { display:inline-block; padding: 2px 8px; border-radius: 999px; font-weight:600; font-size:0.7rem; }
 .badge-pending { background: #facc15; color: #1a1a1a; }   /* amarelo */
 .badge-confirmed { background: #10b981; color: #fff; }    /* verde */
+
+/* right column within each visit list item: stack items and align confirmation to bottom-right */
+.visit-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+.confirmed-badge {
+  margin-top: 0.5rem;
+  font-weight: 600;
+}
+
+/* endereço do imóvel em listagem de visitas */
+.property-address { color: #6c757d; margin-top: 2px; }
 </style>

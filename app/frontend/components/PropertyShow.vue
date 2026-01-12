@@ -125,7 +125,7 @@
               :disabled="submitting || dateError || timeError"
               @click="schedule"
             >
-              {{ submitting ? 'Enviando...' : 'Confirmar agendamento' }}
+              {{ submitting ? 'Enviando...' : 'Enviar solicitação de agendamento' }}
             </button>
             <div v-if="formError" class="text-danger small">{{ formError }}</div>
             <div v-if="successMessage" class="text-success small">{{ successMessage }}</div>
@@ -329,7 +329,7 @@ const schedule = async () => {
 
     if (res.ok) {
       await res.json()
-      successMessage.value = 'Visita agendada com sucesso.'
+      successMessage.value = 'Solicitação de agendamento enviada com sucesso.'
       showScheduler.value = false
       scheduledDate.value = ''
       scheduledTime.value = ''
@@ -362,7 +362,8 @@ const csrfToken = () => document.querySelector('meta[name="csrf-token"]')?.getAt
 const handleScheduleClick = () => {
   if (currentUser.value) {
     if (missingPhone.value) {
-      window.location.href = '/users/edit'
+      // redirect to profile edit and require phone when coming from scheduler
+      window.location.href = '/users/edit?require_phone=1'
       return
     }
     showScheduler.value = !showScheduler.value

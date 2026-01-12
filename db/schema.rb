@@ -10,8 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-
-ActiveRecord::Schema[8.0].define(version: 2025_11_26_193802) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_09_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -95,6 +94,40 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_26_193802) do
     t.text "message", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "kanban_boards", force: :cascade do |t|
+    t.string "name", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "kanban_cards", force: :cascade do |t|
+    t.bigint "kanban_column_id", null: false
+    t.string "title", null: false
+    t.text "description"
+    t.bigint "assigned_user_id"
+    t.integer "position", default: 0, null: false
+    t.jsonb "client_info", default: {}
+    t.jsonb "tags", default: []
+    t.jsonb "checklist", default: []
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["assigned_user_id"], name: "index_kanban_cards_on_assigned_user_id"
+    t.index ["checklist"], name: "index_kanban_cards_on_checklist", using: :gin
+    t.index ["client_info"], name: "index_kanban_cards_on_client_info", using: :gin
+    t.index ["kanban_column_id"], name: "index_kanban_cards_on_kanban_column_id"
+    t.index ["tags"], name: "index_kanban_cards_on_tags", using: :gin
+  end
+
+  create_table "kanban_columns", force: :cascade do |t|
+    t.bigint "kanban_board_id", null: false
+    t.string "name", null: false
+    t.string "color", default: "#7c8cff"
+    t.integer "position", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["kanban_board_id"], name: "index_kanban_columns_on_kanban_board_id"
   end
 
   create_table "notifications", force: :cascade do |t|
@@ -187,13 +220,12 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_26_193802) do
     t.integer "role"
     t.bigint "person_id"
     t.boolean "must_set_password", default: false, null: false
+    t.string "phone"
     t.string "provider"
     t.string "uid"
     t.string "email_verification_token"
     t.datetime "email_verified_at"
     t.datetime "verification_sent_at"
-    t.boolean "must_set_password", default: false, null: false
-    t.string "phone"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["email_verification_token"], name: "index_users_on_email_verification_token", unique: true
     t.index ["person_id"], name: "index_users_on_person_id"
@@ -221,6 +253,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_26_193802) do
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "commissions", "sales"
   add_foreign_key "commissions", "users", column: "agent_id"
+  add_foreign_key "kanban_cards", "kanban_columns"
+  add_foreign_key "kanban_cards", "users", column: "assigned_user_id"
+  add_foreign_key "kanban_columns", "kanban_boards"
   add_foreign_key "notifications", "users"
   add_foreign_key "properties", "users", column: "agent_id"
   add_foreign_key "property_photos", "properties"

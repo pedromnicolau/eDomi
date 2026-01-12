@@ -72,4 +72,17 @@ Rails.application.routes.draw do
 
   resources :people, only: [ :index, :show, :create, :update, :destroy ]
   resources :contacts, only: [ :create ]
+
+  # Kanban / Sales pipeline API
+  resources :kanban_boards, only: [ :index, :show, :create, :update, :destroy ]
+  resources :kanban_columns, only: [ :create, :update, :destroy ] do
+    collection do
+      post :reorder
+    end
+  end
+  resources :kanban_cards, only: [ :create, :show, :update, :destroy ] do
+    collection do
+      post :reorder
+    end
+  end
 end
