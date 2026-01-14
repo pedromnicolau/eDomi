@@ -3,7 +3,6 @@
     <div v-if="loading" class="text-center">Carregando...</div>
     <div v-else-if="error" class="alert alert-danger">{{ error }}</div>
     <div v-else class="card shadow-sm">
-      <!-- GALERIA -->
       <div class="property-gallery p-3" @mouseenter="stopAutoAdvance" @mouseleave="startAutoAdvance">
         <div class="main-photo mb-2 position-relative">
           <img
@@ -36,7 +35,6 @@
         </div>
       </div>
 
-      <!-- INFORMAÇÕES -->
       <div class="card-body">
         <h3 class="card-title">{{ property.title }}</h3>
         <p class="text-muted mb-1">{{ property.city }}, {{ property.state }}</p>
@@ -65,7 +63,6 @@
           Para solicitar uma visita você precisa cadastrar seu telefone no perfil. <router-link to="/users/edit">Atualizar perfil</router-link>.
         </div>
 
-        <!-- MAPA -->
         <div v-if="property.zip_code" class="mt-4">
           <div class="d-flex align-items-center justify-content-between mb-2">
             <h5 class="mb-0">Localização</h5>
@@ -85,9 +82,7 @@
           <div class="small text-muted mt-1">CEP: {{ property.zip_code }}</div>
         </div>
 
-        <!-- SCHEDULER -->
         <div v-if="showScheduler" class="mt-3 p-3 border rounded shadow-sm bg-white">
-          <!-- Data -->
           <div class="mb-2">
             <label class="form-label small">Data da visita</label>
             <input
@@ -100,7 +95,6 @@
             <div v-if="dateError" class="invalid-feedback small">{{ dateError }}</div>
           </div>
 
-          <!-- Hora -->
           <div class="mb-2">
             <label class="form-label small">Hora da visita</label>
             <input
@@ -112,13 +106,11 @@
             <div v-if="timeError" class="invalid-feedback small">{{ timeError }}</div>
           </div>
 
-          <!-- Observações -->
           <div class="mb-2">
             <label class="form-label small">Observações (opcional)</label>
             <textarea v-model="notes" class="form-control" rows="2"></textarea>
           </div>
 
-          <!-- Botão -->
           <div class="d-flex align-items-center">
             <button
               class="btn btn-success me-2"
@@ -135,7 +127,6 @@
     </div>
   </div>
 
-  <!-- LIGHTBOX modal -->
   <div v-if="lightboxOpen" class="lightbox-backdrop" @click.self="closeLightbox">
     <button class="lightbox-close btn-close" @click="closeLightbox" aria-label="Fechar"></button>
     <button class="lightbox-arrow left" @click.stop="prevPhoto" aria-label="Anterior">&#10094;</button>

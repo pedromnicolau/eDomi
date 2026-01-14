@@ -1,6 +1,5 @@
 <template>
   <section class="about-page">
-    <!-- HERO -->
     <header class="hero">
       <div class="hero-bg" role="img" aria-label="Vista urbana de imóveis"></div>
       <div class="hero-overlay"></div>
@@ -9,16 +8,13 @@
           <h1>Construindo o futuro do seu próximo lar</h1>
           <p class="lead">Tecnologia, transparência e atendimento humano para encontrar o imóvel ideal — seja para morar, investir ou empreender.</p>
           <div class="cta-group">
-            <!-- botão principal com cor #1A2E66 e animação "grow" -->
             <router-link to="/" class="btn-view-imoveis btn-cta">Ver Imóveis</router-link>
-            <!-- outline que muda para verde #4ADE80 no hover -->
             <router-link to="/contact" class="btn-outline-cta">Fale com um consultor</router-link>
           </div>
         </div>
       </div>
     </header>
 
-    <!-- FEATURES -->
     <div class="container features">
       <div class="grid-3">
         <article class="feature">
@@ -38,7 +34,6 @@
         </article>
       </div>
 
-      <!-- explanatory text below features -->
       <div class="about-explain mt-4">
         <p>
           Na eDomi, unimos tecnologia e experiência humana para facilitar todas as etapas da sua jornada imobiliária.

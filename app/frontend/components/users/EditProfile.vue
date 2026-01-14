@@ -69,7 +69,7 @@
             Excluir sua conta é uma ação permanente e não pode ser desfeita. 
             Todos os seus dados serão removidos permanentemente.
           </p>
-          
+
           <button
             type="button"
             class="btn btn-outline-danger btn-sm"
@@ -79,7 +79,6 @@
             Excluir minha conta
           </button>
 
-          <!-- Modal de confirmação inline -->
           <div v-if="showDeleteConfirmation" class="mt-3">
             <div class="alert alert-danger mb-3">
               <strong>⚠️ Atenção!</strong> Esta ação é irreversível.
@@ -161,7 +160,6 @@ const user = ref(null)
 
 const route = useRoute()
 
-// Se o usuário veio do fluxo de agendamento, tornamos o telefone obrigatório
 const requirePhone = computed(() => {
   try {
     const v = route.query.require_phone
@@ -169,27 +167,19 @@ const requirePhone = computed(() => {
   } catch (e) { return false }
 })
 
-// Validação simples e prática de telefone:
-// - remove quaisquer caracteres não numéricos
-// - aceita números com ou sem código de país (ex: 11987654321 ou 5511987654321)
-// - para BR: aceita 10 ou 11 dígitos (DDD + número). Se incluir código 55, aceita 12 ou 13.
 const isValidPhone = (p) => {
   if (!p) return false
   const digits = String(p).replace(/\D/g, '')
   if (digits.length < 10 || digits.length > 13) return false
-  // se tiver código do país (55), o restante deve ser 10 ou 11
   if (digits.startsWith('55')) {
     const rest = digits.slice(2)
     return rest.length === 10 || rest.length === 11
   }
-  // sem código do país: 10 ou 11 dígitos aceitáveis
   return digits.length === 10 || digits.length === 11
 }
 
-// Formata telefone enquanto o usuário digita
 const formatPhone = (digits, keepPlus) => {
   if (!digits) return ''
-  // remove zeros à esquerda desnecessários
   let d = digits.replace(/^0+/, '')
   let prefix = ''
   if (d.startsWith('55')) {
@@ -197,13 +187,11 @@ const formatPhone = (digits, keepPlus) => {
     d = d.slice(2)
   }
 
-  // área (2 primeiros dígitos) quando disponíveis
   const area = d.slice(0, 2)
   const number = d.slice(2)
 
   let formattedNumber = ''
   if (!number) {
-    // somente área parcial
     if (area) return prefix + (area.length === 2 ? `(${area})` : `(${area}`)
     return prefix + d
   }
@@ -227,11 +215,9 @@ const onPhoneInput = (e) => {
     const digits = raw.replace(/\D/g, '')
     phone.value = formatPhone(digits, keepPlus)
   } catch (err) {
-    // fallback: não interrompe o typing
   }
 }
 
-// novos campos de senha
 const newPassword = ref('')
 const newPasswordConfirmation = ref('')
 
@@ -243,7 +229,6 @@ const formError = ref('')
 const formSuccess = ref('')
 const phoneError = ref('')
 
-// Estados para exclusão de conta
 const showDeleteConfirmation = ref(false)
 const deletePassword = ref('')
 const deleteError = ref('')

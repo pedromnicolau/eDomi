@@ -46,7 +46,6 @@
 
         <hr />
 
-        <!-- Botão Google OAuth -->
         <div class="text-center my-3">
           <span class="text-muted small">ou</span>
         </div>

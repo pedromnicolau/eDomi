@@ -2,7 +2,6 @@
   <div class="contact-page py-5">
     <div class="container">
       <div class="row g-4">
-        <!-- Contato -->
         <div class="col-md-6 contact-info">
           <h2>Contato</h2>
           <p class="mb-1"><strong>eDomi Imobiliária</strong></p>
@@ -11,7 +10,6 @@
           <p class="mb-1">📍 Avenida Epitácio Pessoa, nº 62, cj. 12, Boqueirão, Santos</p>
         </div>
 
-        <!-- Formulário -->
         <div class="col-md-6 contact-form">
           <h3>Envie uma mensagem</h3>
 

@@ -1,12 +1,8 @@
-# Script de teste para envio de email de reset de senha
-# Execute com: rails runner test/scripts/test_password_reset_email.rb
-
 puts "================================================"
 puts "Testando envio de email de reset de senha"
 puts "================================================"
 puts ""
 
-# Verificar se RESEND_API_KEY está configurado
 if ENV["RESEND_API_KEY"].blank?
   puts "❌ ERRO: RESEND_API_KEY não está configurado no arquivo .env"
   puts ""
@@ -17,7 +13,6 @@ end
 puts "✅ RESEND_API_KEY configurado"
 puts ""
 
-# Buscar primeiro usuário
 user = User.first
 
 unless user
@@ -30,14 +25,11 @@ end
 puts "✅ Usuário encontrado: #{user.email}"
 puts ""
 
-# Enviar email de reset de senha
 begin
   puts "📧 Enviando email de reset de senha para #{user.email}..."
 
-  # Gerar token de reset
   token = user.send(:set_reset_password_token)
 
-  # Enviar email
   UserMailer.reset_password_instructions(user, token).deliver_now
 
   puts ""

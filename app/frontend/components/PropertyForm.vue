@@ -103,7 +103,6 @@
               </select>
             </div>
 
-            <!-- seletor de corretor responsável (visível apenas para agentes/admins) -->
             <div v-if="canEditAgent" class="col-md-12">
               <label class="form-label">Corretor responsável</label>
               <select class="form-select" v-model.number="form.agent_id">
@@ -122,12 +121,10 @@
               </div>
             </div>
 
-            <!-- Upload de imagens -->
             <div class="col-12 mt-3">
               <label class="form-label">Fotos do imóvel</label>
               <input ref="fileInput" type="file" multiple class="form-control" @change="onFilesChange" />
 
-              <!-- previews -->
               <div v-if="previewUrls.length" class="preview-container mt-3 d-flex flex-wrap gap-3">
                 <div
                   v-for="(u,i) in previewUrls"
@@ -144,7 +141,6 @@
                 </div>
               </div>
 
-              <!-- fotos já existentes -->
               <div v-if="existingPhotos.length" class="mt-3">
                
                 <div class="d-flex flex-wrap gap-3">

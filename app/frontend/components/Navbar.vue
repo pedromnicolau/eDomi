@@ -1,13 +1,10 @@
 <template>
-  <!-- nova estrutura: marca | menus centralizados | ações (notificações + auth) -->
   <nav class="navbar navbar-expand-lg shadow-sm">
     <div class="container d-flex align-items-center">
-      <!-- marca (esquerda) -->
       <div class="me-auto d-flex align-items-center">
         <router-link to="/" class="navbar-brand d-flex align-items-center">
           <img :src="logoSrc" class="logo-mark" alt="eDomi" />
         </router-link>
-        <!-- modo: Site público / Sistema interno (apenas admin/corretor) -->
         <div v-if="isPrivileged" class="ms-2 position-relative" ref="modeRef">
           <button
             class="btn btn-mode-toggle"
@@ -26,9 +23,7 @@
         </div>
       </div>
 
-      <!-- menus centralizados -->
       <div class="mx-auto d-none d-lg-flex align-items-center">
-        <!-- Public mode: show regular site menus (no Relatórios) -->
         <template v-if="mode === 'public'">
           <router-link to="/" class="btn btn-new mx-2">Imóveis</router-link>
           <router-link to="/about" class="btn btn-new mx-2">Sobre</router-link>
@@ -36,7 +31,6 @@
           <router-link to="/calendar" class="btn btn-new mx-2">Visitas</router-link>
         </template>
 
-        <!-- Internal mode: only show Relatórios (for privileged users) -->
         <template v-else>
           <div v-if="isPrivileged" class="nav-item mx-2 admin-items" ref="cadastrosRef">
             <button
@@ -60,9 +54,7 @@
         </template>
       </div>
 
-      <!-- ações (direita): notificações + auth -->
       <div class="ms-auto d-flex align-items-center">
-        <!-- notificações -->
         <div class="me-3 position-relative" ref="notificationsRef">
           <button
             class="btn btn-outline-light d-flex align-items-center position-relative"
@@ -71,7 +63,6 @@
             aria-haspopup="true"
             type="button"
           >
-            <!-- Font Awesome bell (carregado dinamicamente) -->
             <i class="fa-solid fa-bell notif-icon" aria-hidden="true"></i>
             <span v-if="unreadCount > 0" class="badge-unread">{{ unreadCount }}</span>
           </button>
@@ -98,7 +89,6 @@
           </div>
         </div>
 
-        <!-- auth -->
         <div class="d-flex align-items-center">
           <template v-if="user">
             <div class="user-dropdown position-relative" ref="userDropdownRef">
@@ -109,7 +99,6 @@
                 aria-haspopup="true"
                 type="button"
               >
-                <!-- simple user icon -->
                 <svg class="me-2 user-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                   <path d="M12 12c2.761 0 5-2.239 5-5s-2.239-5-5-5-5 2.239-5 5 2.239 5 5 5z" fill="#fff"/>
                   <path d="M4 20c0-4.418 3.582-8 8-8s8 3.582 8 8" stroke="#fff" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>

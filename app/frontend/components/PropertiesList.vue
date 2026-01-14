@@ -1,25 +1,20 @@
 <template>
   <div class="container py-4">
-    <!-- filtro -->
     <PropertiesFilter @apply-filters="onApplyFilters" @reset-filters="onResetFilters" />
     <div class="mb-2 small text-muted">Exibindo {{ filteredProperties.length }} de {{ properties.length }} imóveis</div>
 
-    <!-- novo botão 'Novo imóvel' posicionado antes do título -->
     <div class="d-flex justify-content-between align-items-center mb-3">
       <div>
         <router-link v-if="canCreate" to="/properties/new" class="btn btn-apply me-2">Novo imóvel</router-link>
       </div>
     </div>
 
-    <!-- header com quantidade -->
     <div class="d-flex justify-content-between align-items-center mb-3">
       <div>
         <h1 class="h4 mb-0">{{ properties.length.toLocaleString() }} imóveis</h1>
         <div class="text-muted small">à venda</div>
       </div>
-      <!-- opcional: filtros/ordenar -->
       <div>
-        <!-- ...existing controls could go here... -->
       </div>
     </div>
 
@@ -30,7 +25,6 @@
       <div class="row g-3">
         <div class="col-md-4" v-for="p in filteredProperties" :key="p.id">
           <div class="card h-100 property-card">
-            <!-- imagem/carrossel no topo -->
               <div class="card-img-top position-relative overflow-hidden" style="height:220px;">
                 <div v-if="p.photos_urls && p.photos_urls.length" class="h-100 w-100">
                   <router-link :to="{ name: 'properties-show', params: { id: p.id } }"><img :src="currentPhotoUrl(p.id, p)" alt="" class="w-100 h-100 object-cover" /></router-link>

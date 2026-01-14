@@ -30,7 +30,6 @@
       >
         <div class="day-number">{{ cell.date ? cell.day : '' }}</div>
 
-        <!-- mostra quantidade e links rápidos -->
         <div v-if="cell && cell.visits && cell.visits.length" class="visits-rect">
           <div class="small fw-semibold text-danger mb-1">
             {{ cell.visits.length }} visita{{ cell.visits.length > 1 ? 's' : '' }}
@@ -52,7 +51,6 @@
                   {{ formatTime(v.scheduled_at) }} — {{ v.property_title || 'Imóvel desconhecido' }}
                 </span>
               </div>
-              <!-- status badge -->
               <div>
                 <span
                   class="small badge-status"
@@ -90,7 +88,6 @@
               {{ v.property_title || ('Imóvel #' + v.property_id) }}
             </router-link>
 
-            <!-- mostrar endereço do imóvel quando disponível -->
             <div v-if="v.property_address || v.address || v.property_location" class="small text-muted property-address">
               {{ v.property_address || v.address || v.property_location }}
             </div>
@@ -115,7 +112,6 @@
             <div>Cliente: {{ v.buyer_name || v.buyer_email || '' }}</div>
             <div>Corretor: {{ v.agent_name || v.agent_email || '' }}</div>
 
-            <!-- Ações do anunciante (aceitar / recusar) -->
             <div v-if="canManageVisit(v)" class="mt-2 d-flex gap-2 justify-content-end">
               <button v-if="v.status === 'pending'" class="btn btn-sm btn-success" @click="acceptVisit(v.id)" :disabled="actionLoading[v.id]">Aceitar</button>
               <button v-if="v.status === 'pending'" class="btn btn-sm btn-outline-danger" @click="rejectVisit(v.id)" :disabled="actionLoading[v.id]">Recusar</button>

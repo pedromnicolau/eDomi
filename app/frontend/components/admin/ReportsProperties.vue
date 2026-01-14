@@ -28,7 +28,6 @@
               </tr>
             </thead>
             <tbody>
-              <!-- changed: impedir propagação do evento contextmenu -->
               <tr v-for="p in filtered" :key="p.id" @contextmenu.prevent.stop="openMenu($event, p)">
                 <td>{{ p.title || p.name || '-' }}</td>
                 <td>{{ p.city || '-' }}</td>
@@ -39,11 +38,8 @@
           </table>
         </div>
 
-        <!-- menu contextual: permanece no template but será teleportado para body -->
-        <!-- removido menu local para teleport abaixo -->
       </div>
 
-      <!-- teleport menu to body so it renders above all and is not clipped -->
       <teleport to="body">
         <div v-if="menuVisible" class="context-menu" :style="{ left: menuX + 'px', top: menuY + 'px' }" @click.stop>
           <ul>

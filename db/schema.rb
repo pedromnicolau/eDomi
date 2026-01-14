@@ -219,13 +219,13 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_09_120000) do
     t.string "name"
     t.integer "role"
     t.bigint "person_id"
-    t.boolean "must_set_password", default: false, null: false
-    t.string "phone"
     t.string "provider"
     t.string "uid"
     t.string "email_verification_token"
     t.datetime "email_verified_at"
     t.datetime "verification_sent_at"
+    t.boolean "must_set_password", default: false, null: false
+    t.string "phone"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["email_verification_token"], name: "index_users_on_email_verification_token", unique: true
     t.index ["person_id"], name: "index_users_on_person_id"
