@@ -30,6 +30,7 @@ export async function fetchBoards() { return jsonFetch('/kanban_boards') }
 export async function fetchBoard(id) { return jsonFetch(`/kanban_boards/${id}`) }
 export async function createBoard(payload) { return jsonFetch('/kanban_boards', { method: 'POST', body: JSON.stringify({ kanban_board: payload }) }) }
 export async function updateBoard(id, payload) { return jsonFetch(`/kanban_boards/${id}`, { method: 'PUT', body: JSON.stringify({ kanban_board: payload }) }) }
+export async function deleteBoard(id) { return jsonFetch(`/kanban_boards/${id}`, { method: 'DELETE' }) }
 
 export async function createColumn(payload) {
   const headers = {}
@@ -94,6 +95,7 @@ export async function createCard(payload, attachments) {
   fd.append('kanban_card[description]', payload.description || '')
   fd.append('kanban_card[kanban_column_id]', payload.kanban_column_id)
   if (payload.assigned_user_id) fd.append('kanban_card[assigned_user_id]', payload.assigned_user_id)
+  if (payload.client_id) fd.append('kanban_card[client_id]', payload.client_id)
   if (payload.client_info) fd.append('kanban_card[client_info]', JSON.stringify(payload.client_info))
   if (payload.tags) fd.append('kanban_card[tags]', JSON.stringify(payload.tags))
   if (attachments) {
@@ -121,6 +123,7 @@ export async function updateCard(id, payload, attachments = null, removeAttachme
   if (payload.description) fd.append('kanban_card[description]', payload.description)
   if (payload.kanban_column_id) fd.append('kanban_card[kanban_column_id]', payload.kanban_column_id)
   if (payload.assigned_user_id) fd.append('kanban_card[assigned_user_id]', payload.assigned_user_id)
+  if (payload.client_id) fd.append('kanban_card[client_id]', payload.client_id)
   if (payload.client_info) fd.append('kanban_card[client_info]', JSON.stringify(payload.client_info))
   if (payload.tags) fd.append('kanban_card[tags]', JSON.stringify(payload.tags))
   if (payload.checklist) fd.append('kanban_card[checklist]', JSON.stringify(payload.checklist))

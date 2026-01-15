@@ -1,6 +1,6 @@
 <template>
   <div class="d-flex justify-content-center py-5">
-    <div class="card shadow-sm" style="max-width:560px; width:100%;">
+    <div class="card shadow-sm" style="width:80%;">
       <div class="card-body">
         <h5 class="card-title mb-3">Editar perfil</h5>
 
@@ -15,22 +15,14 @@
             <input name="user[email]" v-model="email" type="email" class="form-control" required />
           </div>
 
-                          <div class="mb-3">
-                            <label class="form-label">Telefone</label>
-                            <input
-                              name="user[phone]"
-                              v-model="phone"
-                              type="tel"
-                              class="form-control"
-                              :class="{ 'is-invalid': phoneError }"
-                              placeholder="Ex: (11) 98765-4321 ou +55 11 98765-4321"
-                              pattern="\+?\d{10,15}"
-                              required
-                              @input="onPhoneInput"
-                            />
-                            <div class="form-text small">Informe seu número com DDD. Formatos aceitos: (11) 98765-4321 ou +55 11 98765-4321.</div>
-                            <div v-if="phoneError" class="invalid-feedback small">{{ phoneError }}</div>
-                          </div>
+          <PhoneInput
+            v-model="phone"
+            label="Telefone"
+            :error="phoneError"
+            hint="Informe seu número com DDD. Selecione o país e digite o número."
+            @update:error="phoneError = $event"
+          />
+          <input name="user[phone]" type="hidden" :value="phone" />
 
           <hr class="my-4">
 
@@ -150,6 +142,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
+import PhoneInput from '../shared/PhoneInput.vue'
 
 const csrf = ref(document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '')
 const name = ref('')
@@ -166,57 +159,6 @@ const requirePhone = computed(() => {
     return String(v) === '1' || String(v) === 'true'
   } catch (e) { return false }
 })
-
-const isValidPhone = (p) => {
-  if (!p) return false
-  const digits = String(p).replace(/\D/g, '')
-  if (digits.length < 10 || digits.length > 13) return false
-  if (digits.startsWith('55')) {
-    const rest = digits.slice(2)
-    return rest.length === 10 || rest.length === 11
-  }
-  return digits.length === 10 || digits.length === 11
-}
-
-const formatPhone = (digits, keepPlus) => {
-  if (!digits) return ''
-  let d = digits.replace(/^0+/, '')
-  let prefix = ''
-  if (d.startsWith('55')) {
-    prefix = '+55 '
-    d = d.slice(2)
-  }
-
-  const area = d.slice(0, 2)
-  const number = d.slice(2)
-
-  let formattedNumber = ''
-  if (!number) {
-    if (area) return prefix + (area.length === 2 ? `(${area})` : `(${area}`)
-    return prefix + d
-  }
-
-  if (number.length <= 4) {
-    formattedNumber = number
-  } else {
-    const last4 = number.slice(-4)
-    const first = number.slice(0, number.length - 4)
-    formattedNumber = `${first}-${last4}`
-  }
-
-  if (area) return prefix + `(${area}) ${formattedNumber}`
-  return prefix + formattedNumber
-}
-
-const onPhoneInput = (e) => {
-  try {
-    const raw = e.target.value || ''
-    const keepPlus = raw.trim().startsWith('+')
-    const digits = raw.replace(/\D/g, '')
-    phone.value = formatPhone(digits, keepPlus)
-  } catch (err) {
-  }
-}
 
 const newPassword = ref('')
 const newPasswordConfirmation = ref('')

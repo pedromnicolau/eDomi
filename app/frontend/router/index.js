@@ -25,6 +25,7 @@ import AdminReportsVisits from '@/components/admin/ReportsVisits.vue'
 import AdminReportsPeople from '@/components/admin/ReportsPeople.vue'
 import AdminSalesList from '@/components/admin/SalesList.vue'
 import InternalDashboard from '@/components/InternalDashboard.vue'
+import KanbanBoard from '@/components/kanban/KanbanBoard.vue'
 
 const routes = [
   { path: '/', name: 'home', component: PropertiesList },
@@ -46,6 +47,9 @@ const routes = [
 
   // Internal environment (privileged users)
   { path: '/internal', name: 'internal', component: InternalDashboard, meta: { requiresPrivileged: true } },
+
+  // Kanban (usuários privilegiados)
+  { path: '/kanban', name: 'kanban-board', component: KanbanBoard, meta: { requiresPrivileged: true } },
 
   // Admin cadastros (visíveis apenas a admins)
   { path: '/admin/reports/properties', name: 'admin-reports-imoveis', component: AdminReportsProperties, meta: { requiresAdmin: true } },

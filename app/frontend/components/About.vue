@@ -96,7 +96,7 @@ const agents = [
   grid-template-columns: 1fr 420px;
   gap: 2rem;
   align-items: center;
-  padding: 3rem 1rem;
+  padding: 0px;
 }
 .hero-copy h1 {
   color: #fff;
@@ -225,7 +225,7 @@ const agents = [
 
 /* responsive */
 @media (max-width: 992px) {
-  .hero-inner { grid-template-columns: 1fr; padding: 2rem 1rem; }
+  .hero-inner { grid-template-columns: 1fr; }
   .grid-3 { grid-template-columns: 1fr; }
   .stats-grid { grid-template-columns: repeat(2,1fr); }
   .team-grid { grid-template-columns: repeat(2,1fr); }

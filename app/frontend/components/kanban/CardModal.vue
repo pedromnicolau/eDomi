@@ -1,94 +1,102 @@
 <template>
   <div class="modal-overlay" @click="closeOnBackdrop">
-    <div class="modal-card card p-3" @click.stop>
-      <div class="d-flex align-items-start mb-2">
-        <h5 class="me-auto">{{ card && card.id ? 'Editar cartão' : 'Novo cartão' }}</h5>
-        <div class="d-flex align-items-center gap-2">
-          <div class="dropdown-container" ref="actionsRef">
-            <button class="btn btn-sm btn-outline-secondary btn-actions" type="button" @click.stop="toggleActions">⋯</button>
-            <div v-if="showActions" class="dropdown-menu-custom" @click.stop>
-              <button class="dropdown-item" type="button" @click="duplicateCard">Duplicar</button>
-              <div class="dropdown-divider"></div>
-              <div class="dropdown-label">Mover para</div>
-              <div class="move-list">
-                <button
-                  v-for="col in otherColumns"
-                  :key="col.id"
-                  class="dropdown-item"
-                  type="button"
-                  @click="moveToColumn(col)"
-                >
-                  {{ col.name }}
-                </button>
-                <div v-if="otherColumns.length === 0" class="dropdown-item text-muted" disabled>Nenhuma outra coluna</div>
+    <div class="modal-card card" @click.stop>
+      <div class="modal-header-section">
+        <div class="d-flex align-items-start">
+          <h5 class="me-auto mb-0">{{ card && card.id ? 'Editar cartão' : 'Novo cartão' }}</h5>
+          <div class="d-flex align-items-center gap-2">
+            <div class="dropdown-container" ref="actionsRef">
+              <button class="btn btn-sm btn-outline-secondary btn-actions" type="button" @click.stop="toggleActions">⋯</button>
+              <div v-if="showActions" class="dropdown-menu-custom" @click.stop>
+                <button class="dropdown-item" type="button" @click="duplicateCard">Duplicar</button>
+                <div class="dropdown-divider"></div>
+                <div class="dropdown-label">Mover para</div>
+                <div class="move-list">
+                  <button
+                    v-for="col in otherColumns"
+                    :key="col.id"
+                    class="dropdown-item"
+                    type="button"
+                    @click="moveToColumn(col)"
+                  >
+                    {{ col.name }}
+                  </button>
+                  <div v-if="otherColumns.length === 0" class="dropdown-item text-muted" disabled>Nenhuma outra coluna</div>
+                </div>
+                <div class="dropdown-divider"></div>
+                <button class="dropdown-item text-danger" type="button" @click="confirmDelete">Excluir</button>
               </div>
-              <div class="dropdown-divider"></div>
-              <button class="dropdown-item text-danger" type="button" @click="confirmDelete">Excluir</button>
             </div>
+            <button class="btn-close" type="button" @click="$emit('closed')" aria-label="Fechar"></button>
           </div>
-          <button class="btn-close" type="button" @click="$emit('closed')" aria-label="Fechar"></button>
         </div>
       </div>
 
-      <div>
-        <input v-model="title" class="form-control mb-2" placeholder="Título" />
-        <textarea v-model="description" class="form-control mb-2" rows="3" placeholder="Descrição"></textarea>
+      <div class="modal-content-wrapper">
+        <!-- Coluna esquerda: Formulário -->
+        <div class="modal-left-column">
+          <input v-model="title" class="form-control mb-2" placeholder="Título" />
+          <textarea v-model="description" class="form-control mb-2" rows="3" placeholder="Descrição"></textarea>
 
-        <input v-model="clientName" class="form-control mb-2" placeholder="Nome do cliente" />
-
-        <select v-model="propertyId" class="form-control mb-2">
-          <option value="">Selecione um imóvel...</option>
-          <option v-for="prop in properties" :key="prop.id" :value="prop.id">
-            {{ prop.name }} - {{ prop.address }}
-          </option>
-        </select>
-
-        <label class="form-label small">Anexos</label>
-        
-        <div v-if="existingAttachments.length > 0" class="mb-3">
-          <div class="existing-attachments">
-            <div v-for="(attachment, idx) in existingAttachments" :key="attachment.id" class="attachment-item">
-              <button type="button" class="attachment-preview" @click.stop="openAttachmentLightbox(idx)">
-                <img v-if="isImage(attachment.filename)" :src="attachment.url" :alt="attachment.filename" />
-                <div v-else class="file-icon">
-                  <span v-if="isPdf(attachment.filename)" class="pdf-badge">PDF</span>
-                  <i v-else class="bi bi-file-earmark"></i>
-                </div>
-              </button>
-              <button type="button" class="btn-remove" @click.stop="removeAttachment(attachment.id)" title="Remover">×</button>
-              <div class="filename-text">{{ attachment.filename }}</div>
-            </div>
+          <div class="mb-2">
+            <label class="form-label small">Cliente</label>
+            <select v-model.number="clientId" class="form-select form-select-sm" @change="onClientSelect">
+              <option :value="null">Selecionar cliente...</option>
+              <option v-for="person in people" :key="person.id" :value="person.id">
+                {{ person.name }}
+              </option>
+            </select>
           </div>
-        </div>
 
-        <div class="input-group mb-2">
-          <input type="file" multiple @change="onFiles" class="form-control form-control-sm" ref="fileInput" />
-          <button v-if="newFiles.length > 0" type="button" class="btn btn-sm btn-secondary" @click="clearFiles">Limpar</button>
-        </div>
-
-        <div v-if="newFiles.length > 0" class="mb-3">
-          <label class="form-label small">Novos arquivos:</label>
-          <div class="new-attachments">
-            <div v-for="(file, idx) in newFiles" :key="idx" class="attachment-item">
-              <div class="attachment-preview">
-                <img v-if="isImage(file.name)" :src="getPreview(file)" :alt="file.name" />
-                <div v-else class="file-icon">
-                  <span v-if="isPdf(file.name)" class="pdf-badge">PDF</span>
-                  <i v-else class="bi bi-file-earmark"></i>
-                </div>
+          <label class="form-label small">Anexos</label>
+          
+          <div v-if="existingAttachments.length > 0" class="mb-3">
+            <div class="existing-attachments">
+              <div v-for="(attachment, idx) in existingAttachments" :key="attachment.id" class="attachment-item">
+                <button type="button" class="attachment-preview" @click.stop="openAttachmentLightbox(idx)">
+                  <img v-if="isImage(attachment.filename)" :src="attachment.url" :alt="attachment.filename" />
+                  <div v-else class="file-icon">
+                    <span v-if="isPdf(attachment.filename)" class="pdf-badge">PDF</span>
+                    <i v-else class="bi bi-file-earmark"></i>
+                  </div>
+                </button>
+                <button type="button" class="btn-remove" @click.stop="removeAttachment(attachment.id)" title="Remover">×</button>
+                <div class="filename-text">{{ attachment.filename }}</div>
               </div>
-              <button type="button" class="btn-remove" @click="removeNewFile(idx)" title="Remover">×</button>
-              <div class="filename-text">{{ file.name }}</div>
+            </div>
+          </div>
+
+          <div class="input-group mb-2">
+            <input type="file" multiple @change="onFiles" class="form-control form-control-sm" ref="fileInput" />
+            <button v-if="newFiles.length > 0" type="button" class="btn btn-sm btn-secondary" @click="clearFiles">Limpar</button>
+          </div>
+
+          <div v-if="newFiles.length > 0" class="mb-3">
+            <label class="form-label small">Novos arquivos:</label>
+            <div class="new-attachments">
+              <div v-for="(file, idx) in newFiles" :key="idx" class="attachment-item">
+                <div class="attachment-preview">
+                  <img v-if="isImage(file.name)" :src="getPreview(file)" :alt="file.name" />
+                  <div v-else class="file-icon">
+                    <span v-if="isPdf(file.name)" class="pdf-badge">PDF</span>
+                    <i v-else class="bi bi-file-earmark"></i>
+                  </div>
+                </div>
+                <button type="button" class="btn-remove" @click="removeNewFile(idx)" title="Remover">×</button>
+                <div class="filename-text">{{ file.name }}</div>
+              </div>
             </div>
           </div>
         </div>
 
-        <div class="mt-4">
-          <div class="d-flex align-items-center mb-3">
-            <label class="form-label small mb-0">Atividade</label>
-            <span class="ms-2 text-muted small" v-if="loadingComments">Carregando...</span>
-          </div>
-          <div class="activity-container">
+        <!-- Coluna direita: Atividade -->
+        <div class="modal-right-column">
+          <div class="activity-section">
+            <div class="d-flex align-items-center mb-3">
+              <label class="form-label small mb-0 fw-semibold">Atividade</label>
+              <span class="ms-2 text-muted small" v-if="loadingComments">Carregando...</span>
+            </div>
+            <div class="activity-container">
             <div v-if="activityItems.length === 0" class="text-muted small py-3 text-center">Sem atividades ainda.</div>
             
             <template v-else v-for="(item, index) in activityItems" :key="item.id">
@@ -141,16 +149,56 @@
 
                 <!-- Respostas -->
                 <div v-if="item.replies && item.replies.length > 0" class="comment-replies">
-                  <div v-for="reply in item.replies" :key="reply.id" class="reply-card">
-                    <div class="reply-header">
-                      <div class="user-avatar-small">{{ getInitials(reply.user?.name) }}</div>
-                      <div class="reply-info">
-                        <div class="user-name-small">{{ reply.user?.name || reply.user?.email }}</div>
-                        <div class="reply-time">{{ getTimeRelative(reply.created_at) }}</div>
-                      </div>
-                    </div>
-                    <div class="reply-body">{{ reply.body }}</div>
+                  <!-- Mostrar sumário quando não está expandido -->
+                  <div v-if="!expandedReplies[item.id]" class="replies-summary">
+                    <button 
+                      type="button" 
+                      class="replies-toggle-btn"
+                      @click.stop="expandedReplies[item.id] = true"
+                    >
+                      <i class="fa-solid fa-reply"></i>
+                      <span>{{ item.replies.length }} {{ item.replies.length === 1 ? 'resposta' : 'respostas' }}</span>
+                    </button>
                   </div>
+
+                  <!-- Mostrar respostas expandidas -->
+                  <template v-else>
+                    <div 
+                      v-for="(reply, replyIdx) in getVisibleReplies(item)" 
+                      :key="reply.id" 
+                      class="reply-card"
+                    >
+                      <div class="reply-header">
+                        <div class="user-avatar-small">{{ getInitials(reply.user?.name) }}</div>
+                        <div class="reply-info">
+                          <div class="user-name-small">{{ reply.user?.name || reply.user?.email }}</div>
+                          <div class="reply-time">{{ getTimeRelative(reply.created_at) }}</div>
+                        </div>
+                      </div>
+                      <div class="reply-body">{{ reply.body }}</div>
+                    </div>
+
+                    <!-- Botão Ver Mais Respostas -->
+                    <button 
+                      v-if="(expandedRepliesCount[item.id] || 5) < item.replies.length"
+                      type="button"
+                      class="see-more-replies-btn"
+                      @click.stop="expandedRepliesCount[item.id] = (expandedRepliesCount[item.id] || 5) + 5"
+                    >
+                      <i class="fa-solid fa-chevron-down"></i>
+                      <span>Ver mais {{ Math.min(5, item.replies.length - (expandedRepliesCount[item.id] || 5)) }} resposta(s)</span>
+                    </button>
+
+                    <!-- Botão Ocultar Respostas -->
+                    <button 
+                      type="button"
+                      class="collapse-replies-btn"
+                      @click.stop="expandedReplies[item.id] = false"
+                    >
+                      <i class="fa-solid fa-chevron-up"></i>
+                      <span>Ocultar respostas</span>
+                    </button>
+                  </template>
                 </div>
 
                 <!-- Input de resposta -->
@@ -177,7 +225,8 @@
                 </div>
                 <div class="activity-content">
                   <div class="activity-text">
-                    <span class="activity-user">{{ item.user?.name || item.user?.email || 'Sistema' }}</span>
+                    <span v-if="item.user" class="activity-user">{{ item.user.name || item.user.email }}</span>
+                    <span v-else class="activity-user">Sistema</span>
                     <span v-if="item.type === 'created'">criou o cartão</span>
                     <span v-else-if="item.type === 'edited'">editou</span>
                   </div>
@@ -215,15 +264,26 @@
             </div>
           </div>
         </div>
-
       </div>
     </div>
+
+    </div>
+
+    <ConfirmDialog
+      :show="confirmDialog.show"
+      :title="confirmDialog.title"
+      :message="confirmDialog.message"
+      @confirm="confirmDialog.onConfirm"
+      @cancel="confirmDialog.show = false"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
 import * as api from '@/api/kanban'
+import * as peopleApi from '@/api/people'
 import { getTimeRelative, getInitials } from '@/utils/timeHelper'
 
 const props = defineProps({ card: Object, column: Object, columns: { type: Array, default: () => [] } })
@@ -231,19 +291,27 @@ const emit = defineEmits(['saved','closed','open-attachment','deleted','move-car
 
 const title = ref(props.card?.title || '')
 const description = ref(props.card?.description || '')
-const clientName = ref(props.card?.client_info?.name || '')
+const clientId = ref(props.card?.client_id || null)
+const lastCardId = ref(props.card?.id || null)
+const people = ref([])
+const loadingPeople = ref(false)
 const newFiles = ref([])
 const removedAttachmentIds = ref([])
 const fileInput = ref(null)
 const showActions = ref(false)
 const actionsRef = ref(null)
+
+const confirmDialog = ref({
+  show: false,
+  title: '',
+  message: '',
+  onConfirm: null
+})
 const saveTimer = ref(null)
 const isSaving = ref(false)
 const comments = ref(props.card?.comments || [])
 const newComment = ref('')
 const loadingComments = ref(false)
-const propertyId = ref(props.card?.property_id || '')
-const properties = ref([])
 
 const existingAttachments = computed(() => {
   if (!props.card?.attachments) return []
@@ -264,7 +332,7 @@ const activityItems = computed(() => {
       id: 'created',
       type: 'created',
       created_at: props.card.created_at,
-      user: null
+      user: props.card.created_by_user || props.card.assigned_user || null
     })
   }
   
@@ -293,13 +361,43 @@ const activityItems = computed(() => {
   return items.sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
 })
 
-watch(() => props.card, (card) => {
-  title.value = card?.title || ''
-  description.value = card?.description || ''
-  clientName.value = card?.client_info?.name || ''
-    propertyId.value = card?.property_id || ''
-  comments.value = card?.comments || []
-})
+watch(() => props.card, (newCard) => {
+  if (!newCard) return
+  
+  if (newCard.id !== lastCardId.value) {
+    // Card ID mudou, reseta todos os campos com valores do novo card
+    lastCardId.value = newCard.id
+    title.value = newCard.title || ''
+    description.value = newCard.description || ''
+    clientId.value = newCard.client_id ?? null
+    comments.value = newCard.comments || []
+    removedAttachmentIds.value = []
+    newFiles.value = []
+  } else if (newCard.id === lastCardId.value) {
+    // Mesmo card, atualiza campos retornados do servidor
+    // Sempre sincroniza com o servidor para manter consistência
+    clientId.value = newCard.client_id ?? clientId.value
+    
+    // Limpa IDs removidos se os anexos foram atualizados do servidor
+    if (newCard.attachments) {
+      const currentIds = newCard.attachments.map(a => a.id)
+      removedAttachmentIds.value = removedAttachmentIds.value.filter(id => currentIds.includes(id))
+    }
+  }
+}, { deep: true })
+
+async function loadPeople() {
+  loadingPeople.value = true
+  try {
+    people.value = await peopleApi.fetchPeople()
+  } finally {
+    loadingPeople.value = false
+  }
+}
+
+function onClientSelect() {
+  scheduleAutoSave()
+}
 
 function onFiles(e) {
   newFiles.value = Array.from(e.target.files)
@@ -350,22 +448,37 @@ async function closeOnBackdrop() {
 async function confirmDelete() {
   closeActions()
   if (!props.card?.id) return
-  const sure = confirm('Excluir este cartão? Esta ação não pode ser desfeita.')
-  if (!sure) return
-  try {
-    await api.deleteCard(props.card.id)
-    emit('deleted', props.card.id)
-    emit('closed')
-  } catch (e) {
-    alert('Erro ao excluir: ' + (e?.error || JSON.stringify(e)))
+  
+  confirmDialog.value = {
+    show: true,
+    title: 'Excluir cartão',
+    message: 'Tem certeza que deseja excluir este cartão? Esta ação não pode ser desfeita.',
+    onConfirm: async () => {
+      confirmDialog.value.show = false
+      try {
+        await api.deleteCard(props.card.id)
+        emit('deleted', props.card.id)
+        emit('closed')
+      } catch (e) {
+        alert('Erro ao excluir: ' + (e?.error || JSON.stringify(e)))
+      }
+    }
   }
 }
 
 function toggleActions() {
   showActions.value = !showActions.value
+  if (showActions.value) {
+    nextTick(() => {
+      document.addEventListener('click', handleClickOutside, true)
+    })
+  }
 }
 
-function closeActions() { showActions.value = false }
+function closeActions() { 
+  showActions.value = false
+  document.removeEventListener('click', handleClickOutside, true)
+}
 
 function handleClickOutside(e) {
   if (!showActions.value) return
@@ -375,7 +488,7 @@ function handleClickOutside(e) {
 }
 
 onMounted(() => {
-  document.addEventListener('click', handleClickOutside)
+  loadPeople()
   loadComments()
   // Obter usuário atual
   fetch('/current_user')
@@ -388,7 +501,7 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
-  document.removeEventListener('click', handleClickOutside)
+  document.removeEventListener('click', handleClickOutside, true)
   if (saveTimer.value) clearTimeout(saveTimer.value)
 })
 
@@ -397,7 +510,8 @@ const scheduleAutoSave = () => {
   saveTimer.value = setTimeout(() => saveCard(true), 600)
 }
 
-watch([title, description, clientName], scheduleAutoSave)
+// Watch para auto-save quando qualquer campo é alterado
+watch([title, description, clientId], scheduleAutoSave, { deep: false })
 
 async function saveCard(silent = false) {
   if (!props.column) return
@@ -405,7 +519,8 @@ async function saveCard(silent = false) {
     title: title.value,
     description: description.value,
     kanban_column_id: props.column.id,
-    client_info: { name: clientName.value }
+    client_id: clientId.value,
+    assigned_user_id: currentUserId.value
   }
 
   try {
@@ -444,7 +559,7 @@ async function duplicateCard() {
     title: title.value || (props.card?.title || ''),
     description: description.value || (props.card?.description || ''),
     kanban_column_id: props.column.id,
-    client_info: { name: clientName.value || props.card?.client_info?.name || '' }
+    client_id: clientId.value
   }
   try {
     const created = await api.createCard(payload)
@@ -465,7 +580,7 @@ async function moveToColumn(col) {
     title: title.value,
     description: description.value,
     kanban_column_id: col.id,
-    client_info: { name: clientName.value }
+    client_id: clientId.value
   }
   try {
     const updated = await api.updateCard(cardId, payload)
@@ -577,6 +692,13 @@ async function addEmojiReaction(comment, emoji) {
 
 const replyingTo = ref(null)
 const replyText = ref('')
+const expandedReplies = ref({})
+const expandedRepliesCount = ref({})
+
+function getVisibleReplies(comment) {
+  const count = expandedRepliesCount.value[comment.id] || 5
+  return comment.replies.slice(0, count)
+}
 
 function toggleReply(comment) {
   if (replyingTo.value === comment.id) {
@@ -620,12 +742,49 @@ async function submitReply() {
 }
 
 .modal-card {
-  width: 90%;
-  max-width: 500px;
-  max-height: 90vh;
-  overflow-y: auto;
+  width: 80%;
+  max-width: 1400px;
+  height: 90vh;
   background: white;
   border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.modal-header-section {
+  padding: 16px 20px;
+  border-bottom: 1px solid #e9ecef;
+  flex-shrink: 0;
+}
+
+.modal-content-wrapper {
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  gap: 0;
+  flex: 1;
+  overflow: hidden;
+}
+
+.modal-left-column {
+  min-width: 0;
+  overflow-y: auto;
+  padding: 20px;
+  padding-right: 20px;
+}
+
+.modal-right-column {
+  border-left: 1px solid #e9ecef;
+  padding: 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.activity-section {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .dropdown-container {
@@ -687,12 +846,35 @@ async function submitReply() {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  max-height: 400px;
+  flex: 1;
   overflow-y: auto;
-  border: 1px solid #dee2e6;
-  border-radius: 4px;
-  padding: 12px;
-  background: #fff;
+  padding-right: 4px;
+}
+
+/* Scrollbar customizada */
+.modal-left-column::-webkit-scrollbar,
+.modal-right-column::-webkit-scrollbar,
+.activity-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal-left-column::-webkit-scrollbar-track,
+.modal-right-column::-webkit-scrollbar-track,
+.activity-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.modal-left-column::-webkit-scrollbar-thumb,
+.modal-right-column::-webkit-scrollbar-thumb,
+.activity-container::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+
+.modal-left-column::-webkit-scrollbar-thumb:hover,
+.modal-right-column::-webkit-scrollbar-thumb:hover,
+.activity-container::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
 }
 
 .comment-card {
@@ -1164,5 +1346,105 @@ async function submitReply() {
 
 .input-group .form-control {
   flex: 1;
+}
+
+.replies-summary {
+  margin-top: 12px;
+  padding: 4px 0;
+}
+
+.replies-toggle-btn {
+  background: none;
+  border: none;
+  color: #6c757d;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 400;
+  padding: 4px 0;
+  text-decoration: none;
+  transition: color 0.15s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.replies-toggle-btn:hover {
+  color: #0d6efd;
+}
+
+.replies-toggle-btn i {
+  font-size: 12px;
+}
+
+.see-more-replies-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  color: #6c757d;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 6px 0;
+  text-decoration: none;
+  transition: color 0.15s ease;
+  margin-top: 8px;
+  font-weight: 400;
+}
+
+.see-more-replies-btn:hover {
+  color: #0d6efd;
+}
+
+.see-more-replies-btn i {
+  font-size: 12px;
+}
+
+.collapse-replies-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  color: #6c757d;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 6px 0;
+  text-decoration: none;
+  transition: color 0.15s ease;
+  margin-top: 6px;
+  font-weight: 400;
+}
+
+.collapse-replies-btn:hover {
+  color: #0d6efd;
+}
+
+.collapse-replies-btn i {
+  font-size: 12px;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .modal-card {
+    max-width: 95%;
+    max-height: 95vh;
+  }
+
+  .modal-content-wrapper {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .modal-right-column {
+    border-left: none;
+    border-top: 1px solid #e9ecef;
+    padding-left: 20px;
+  }
+
+  .modal-left-column,
+  .modal-right-column {
+    max-height: none;
+  }
 }
 </style>

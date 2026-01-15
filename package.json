@@ -26,6 +26,7 @@
     "@fortawesome/fontawesome-free": "^7.1.0",
     "@popperjs/core": "^2.11.8",
     "bootstrap": "^5.3.8",
+    "emoji-picker-element": "^1.28.1",
     "vue": "^3.5.22",
     "vue-router": "^4.6.3"
   }

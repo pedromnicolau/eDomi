@@ -31,18 +31,43 @@ class KanbanCardsController < ApplicationController
       next if skip_fields.include?(key.to_s)
 
       old_value = @card.send(key)
-      if old_value != value
-        field_info = case key.to_s
-        when "title" then { name: "Título", old: old_value, new: value }
-        when "description" then { name: "Descrição", old: old_value, new: value }
-        when "client_info" then { name: "Cliente", old: old_value.dig(:name) || "", new: value.dig(:name) || "" }
-        when "tags" then { name: "Tags", old: old_value || [], new: value || [] }
-        when "checklist" then { name: "Checklist", old: old_value || [], new: value || [] }
-        when "assigned_user_id" then { name: "Usuário atribuído", old: old_value, new: value }
-        else { name: key.to_s.humanize, old: old_value, new: value }
-        end
-        changed_fields << field_info
+
+      # Normaliza valores para comparação correta
+      normalized_old = old_value.to_s.strip
+      normalized_new = value.to_s.strip
+
+      # Pula se os valores são iguais
+      next if normalized_old == normalized_new
+
+      field_info = case key.to_s
+      when "title" then { name: "Título", old: old_value, new: value }
+      when "description" then { name: "Descrição", old: old_value, new: value }
+      when "client_id"
+        old_name = Person.find_by(id: old_value)&.name || ""
+        new_name = Person.find_by(id: value)&.name || ""
+        next if old_name == new_name  # Pula se os nomes são iguais
+        { name: "Cliente", old: old_name, new: new_name }
+      when "client_info"
+        old_name = old_value.dig(:name) || ""
+        new_name = value.dig(:name) || ""
+        next if old_name == new_name
+        { name: "Cliente", old: old_name, new: new_name }
+      when "tags"
+        old_tags = (old_value || []).sort
+        new_tags = (value || []).sort
+        next if old_tags == new_tags
+        { name: "Tags", old: old_value || [], new: value || [] }
+      when "checklist"
+        next if (old_value || []) == (value || [])
+        { name: "Checklist", old: old_value || [], new: value || [] }
+      when "assigned_user_id"
+        next if old_value.to_i == value.to_i
+        { name: "Usuário atribuído", old: old_value, new: value }
+      else
+        { name: key.to_s.humanize, old: old_value, new: value }
       end
+
+      changed_fields << field_info if field_info
     end
 
     if @card.update(card_params)
@@ -100,7 +125,7 @@ class KanbanCardsController < ApplicationController
   end
 
   def card_params
-    params.require(:kanban_card).permit(:title, :description, :kanban_column_id, :assigned_user_id, :property_id, :position, client_info: {}, tags: [], checklist: [])
+    params.require(:kanban_card).permit(:title, :description, :kanban_column_id, :assigned_user_id, :client_id, :position, client_info: {}, tags: [], checklist: [])
   end
 
   def ensure_privileged!

@@ -1,13 +1,13 @@
 <template>
-  <div class="container py-4">
-    <PropertiesFilter @apply-filters="onApplyFilters" @reset-filters="onResetFilters" />
-    <div class="mb-2 small text-muted">Exibindo {{ filteredProperties.length }} de {{ properties.length }} imóveis</div>
-
+  <div class="container py-4 px-0">
     <div class="d-flex justify-content-between align-items-center mb-3">
       <div>
         <router-link v-if="canCreate" to="/properties/new" class="btn btn-apply me-2">Novo imóvel</router-link>
       </div>
     </div>
+
+    <PropertiesFilter @apply-filters="onApplyFilters" @reset-filters="onResetFilters" />
+    <div class="mb-2 small text-muted">Exibindo {{ filteredProperties.length }} de {{ properties.length }} imóveis</div>
 
     <div class="d-flex justify-content-between align-items-center mb-3">
       <div>

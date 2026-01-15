@@ -15,8 +15,8 @@ class User < ApplicationRecord
   before_validation :normalize_phone
 
   # Validação de telefone (opcional para existir conta; obrigatório para solicitar visita no controller)
-  # Aceita dígitos com ou sem +; normalizamos removendo caracteres não numéricos.
-  validates :phone, allow_blank: true, format: { with: /\A\+?\d{10,15}\z/, message: "inválido. Use somente números (DDD + número). Ex: 11987654321" }
+  # Aceita múltiplos formatos internacionais com código do país
+  validates :phone, allow_blank: true, format: { with: /\A\+?\d{8,15}\z/, message: "inválido. Use formato internacional (ex: +55 11 98765-4321)" }
 
   def display_name
     name.presence || email

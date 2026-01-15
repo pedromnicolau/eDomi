@@ -43,6 +43,14 @@
       @open-attachment="onOpenAttachment"
       @update-card="syncCardFromModal"
     />
+
+    <ConfirmDialog
+      :show="confirmDialog.show"
+      :title="confirmDialog.title"
+      :message="confirmDialog.message"
+      @confirm="confirmDialog.onConfirm"
+      @cancel="confirmDialog.show = false"
+    />
   </div>
 </template>
 
@@ -50,6 +58,7 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import KanbanCard from './KanbanCard.vue'
 import CardModal from './CardModal.vue'
+import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
 import * as api from '@/api/kanban'
 
 const props = defineProps({ column: Object, columns: { type: Array, default: () => [] } })
@@ -62,6 +71,13 @@ const showDropdown = ref(false)
 
 const showCardModal = ref(false)
 const editingCard = ref(null)
+
+const confirmDialog = ref({
+  show: false,
+  title: '',
+  message: '',
+  onConfirm: null
+})
 
 function toggleDropdown() {
   showDropdown.value = !showDropdown.value
@@ -82,9 +98,16 @@ async function saveEdit() {
 
 async function remove() {
   showDropdown.value = false
-  if (!confirm('Excluir coluna e seus cartões?')) return
-  await api.deleteColumn(props.column.id)
-  emit('delete-column', props.column.id)
+  confirmDialog.value = {
+    show: true,
+    title: 'Excluir coluna',
+    message: 'Tem certeza que deseja excluir esta coluna e todos os seus cartões? Esta ação não pode ser desfeita.',
+    onConfirm: async () => {
+      confirmDialog.value.show = false
+      await api.deleteColumn(props.column.id)
+      emit('delete-column', props.column.id)
+    }
+  }
 }
 
 function openNewCard() { editingCard.value = null; showCardModal.value = true }
@@ -119,7 +142,16 @@ async function onCardSaved(card) {
 function closeModal() { showCardModal.value = false }
 
 function onDragStart(card, column) {
+  event.dataTransfer.effectAllowed = 'move'
   event.dataTransfer.setData('text/plain', JSON.stringify({ cardId: card.id, fromColumnId: column.id }))
+  
+  // Adiciona classe ao body para mudar cursor globalmente
+  document.body.classList.add('is-dragging-card')
+  
+  // Remove a classe quando o drag terminar
+  event.target.addEventListener('dragend', () => {
+    document.body.classList.remove('is-dragging-card')
+  }, { once: true })
 }
 
 function onDrop(ev) {
@@ -166,6 +198,14 @@ function syncCardFromModal(card) {
   }
 }
 </script>
+
+<style>
+/* Global style - not scoped */
+body.is-dragging-card,
+body.is-dragging-card * {
+  cursor: grabbing !important;
+}
+</style>
 
 <style scoped>
 .kanban-column-wrapper {

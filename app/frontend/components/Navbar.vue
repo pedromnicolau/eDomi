@@ -1,6 +1,6 @@
 <template>
   <nav class="navbar navbar-expand-lg shadow-sm">
-    <div class="container d-flex align-items-center">
+    <div class="container d-flex align-items-center px-0">
       <div class="me-auto d-flex align-items-center">
         <button class="navbar-brand d-flex align-items-center btn btn-link p-0 border-0 bg-transparent" type="button" @click="handleLogoClick">
           <img :src="logoSrc" class="logo-mark" alt="eDomi" />
@@ -33,19 +33,22 @@
 
         <template v-else>
           <div v-if="isPrivileged" class="nav-item mx-2 admin-items" ref="cadastrosRef">
+            <router-link v-if="isPrivileged" to="/kanban" class="btn btn-new mx-2">Kanban</router-link>
+            <router-link v-if="isPrivileged" to="/admin/reports/users" class="btn btn-new mx-2">Pessoas</router-link>
+
             <button
               class="btn btn-new dropdown-toggle"
               type="button"
               @click="toggleCadastros"
               :aria-expanded="cadastrosOpen"
               aria-haspopup="true"
+                :class="{ 'btn-new-active': isCadastrosActive }"
             >
               Relatórios
             </button>
 
             <div v-if="cadastrosOpen" class="cadastros-menu shadow-sm">
               <router-link class="dropdown-item" to="/admin/reports/properties" @click="closeCadastros">Imóveis</router-link>
-              <router-link class="dropdown-item" to="/admin/reports/users" @click="closeCadastros">Usuários</router-link>
               <router-link class="dropdown-item" to="/admin/reports/sales" @click="closeCadastros">Vendas</router-link>
               <router-link class="dropdown-item" to="/admin/reports/commissions" @click="closeCadastros">Comissões</router-link>
               <router-link class="dropdown-item" to="/admin/reports/visits" @click="closeCadastros">Visitas</router-link>
@@ -125,9 +128,10 @@
 
 <script setup>
 import { ref, onMounted, watch, computed, onBeforeUnmount } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 
 const router = useRouter()
+const route = useRoute()
 const user = ref(null)
 const canCreate = ref(false)
 const logoNextInternal = ref(false)
@@ -201,6 +205,12 @@ const isAgent = computed(() => {
 
 // privileged users (admin or agent)
 const isPrivileged = computed(() => isAdmin.value || isAgent.value)
+
+// ativo quando qualquer rota de admin/relatórios está selecionada (exceto users)
+const isCadastrosActive = computed(() => {
+  const p = route.path || ''
+  return p.startsWith('/admin/reports/') && !p.startsWith('/admin/reports/users')
+})
 
 // no fetchNotifications
 const fetchNotifications = async () => {
@@ -490,7 +500,7 @@ watch(user, async (v) => {
 <style scoped>
 .navbar {
   background: #1A2E66;
-  padding: 0.30rem 0.5rem;
+  padding: 0.30rem 0;
   --primary-blue: #1A2E66;
   --secondary-green: #4ADE80;
   border-radius: 0.35rem;
@@ -531,6 +541,21 @@ watch(user, async (v) => {
   padding: 0.4rem 0.85rem;
   border-radius: 0.375rem;
   font-weight: 600;
+}
+
+.btn-new.router-link-active,
+.btn-new.router-link-exact-active {
+  color: var(--secondary-green);
+  text-decoration: underline;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 4px;
+}
+
+.btn-new-active {
+  color: var(--secondary-green);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
 }
 
 .btn-new:hover {
@@ -613,6 +638,13 @@ watch(user, async (v) => {
 .dropdown-item:hover {
   background: #f8f9fa;
   color: #000;
+}
+
+.dropdown-item.router-link-active,
+.dropdown-item.router-link-exact-active {
+  color: var(--secondary-green) !important;
+  font-weight: 600;
+  background: #f8f9fa;
 }
 
 .dropdown-divider {

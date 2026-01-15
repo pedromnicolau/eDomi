@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_01_15_014231) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_15_210401) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -115,6 +115,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_15_014231) do
     t.datetime "updated_at", null: false
     t.json "edit_history", default: []
     t.bigint "property_id"
+    t.bigint "client_id"
     t.index ["assigned_user_id"], name: "index_kanban_cards_on_assigned_user_id"
     t.index ["checklist"], name: "index_kanban_cards_on_checklist", using: :gin
     t.index ["client_info"], name: "index_kanban_cards_on_client_info", using: :gin
@@ -170,6 +171,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_15_014231) do
     t.boolean "active", default: true, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "cpf"
+    t.integer "role", default: 0
     t.index ["email"], name: "index_people_on_email", unique: true
   end
 
@@ -272,6 +275,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_15_014231) do
   add_foreign_key "commissions", "sales"
   add_foreign_key "commissions", "users", column: "agent_id"
   add_foreign_key "kanban_cards", "kanban_columns"
+  add_foreign_key "kanban_cards", "people", column: "client_id"
   add_foreign_key "kanban_cards", "properties"
   add_foreign_key "kanban_cards", "users", column: "assigned_user_id"
   add_foreign_key "kanban_columns", "kanban_boards"

@@ -1,11 +1,11 @@
 <template>
-  <div class="container py-4">
-    <KanbanBoard />
+  <div class=" container py-4">
+    Tela inicial ADMS e corretores
   </div>
 </template>
 
 <script setup>
-import KanbanBoard from './kanban/KanbanBoard.vue'
+
 </script>
 
 <style scoped>
