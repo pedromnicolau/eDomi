@@ -22,16 +22,49 @@ class KanbanCardsController < ApplicationController
   end
 
   def update
-    # allow moving between columns by providing kanban_column_id and position
+    changed_fields = []
+
+    # Campos que não devem ser rastreados
+    skip_fields = [ "position", "kanban_column_id" ]
+
+    card_params.each do |key, value|
+      next if skip_fields.include?(key.to_s)
+
+      old_value = @card.send(key)
+      if old_value != value
+        field_info = case key.to_s
+        when "title" then { name: "Título", old: old_value, new: value }
+        when "description" then { name: "Descrição", old: old_value, new: value }
+        when "client_info" then { name: "Cliente", old: old_value.dig(:name) || "", new: value.dig(:name) || "" }
+        when "tags" then { name: "Tags", old: old_value || [], new: value || [] }
+        when "checklist" then { name: "Checklist", old: old_value || [], new: value || [] }
+        when "assigned_user_id" then { name: "Usuário atribuído", old: old_value, new: value }
+        else { name: key.to_s.humanize, old: old_value, new: value }
+        end
+        changed_fields << field_info
+      end
+    end
+
     if @card.update(card_params)
       if params[:attachments].present?
         Array(params[:attachments]).each { |f| @card.attachments.attach(f) }
+        changed_fields << { name: "Anexos", old: "", new: "Adicionado" } unless changed_fields.any? { |f| f[:name] == "Anexos" }
       end
-      # handle removal of attachments by blob ids
       if params[:remove_attachment_blob_ids].present?
-        ids = Array(params[:remove_attachment_blob_ids]).map(&:to_i)
-        @card.attachments_attachments.where(blob_id: ids).each(&:purge)
+        ids = Array(params[:remove_attachment_blob_ids])
+        @card.attachments.each do |attachment|
+          if ids.include?(attachment.id.to_s)
+            attachment.purge
+          end
+        end
+        changed_fields << { name: "Anexos", old: "", new: "Removido" } unless changed_fields.any? { |f| f[:name] == "Anexos" }
       end
+
+      if changed_fields.any?
+        @card.track_changes(current_user, changed_fields)
+        @card.save
+      end
+
       render json: @card.as_json
     else
       render json: { errors: @card.errors.full_messages }, status: :unprocessable_entity
@@ -67,7 +100,7 @@ class KanbanCardsController < ApplicationController
   end
 
   def card_params
-    params.require(:kanban_card).permit(:title, :description, :kanban_column_id, :assigned_user_id, :position, client_info: {}, tags: [], checklist: [])
+    params.require(:kanban_card).permit(:title, :description, :kanban_column_id, :assigned_user_id, :property_id, :position, client_info: {}, tags: [], checklist: [])
   end
 
   def ensure_privileged!

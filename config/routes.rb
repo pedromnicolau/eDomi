@@ -84,5 +84,26 @@ Rails.application.routes.draw do
     collection do
       post :reorder
     end
+    resources :kanban_comments, path: "comments", only: [ :index, :create ] do
+      collection do
+        post :create_reply
+      end
+      member do
+        post :like
+        delete :unlike
+        post :add_reaction
+        delete :remove_reaction
+      end
+    end
+  end
+
+  # Rotas para comentários diretos
+  resources :kanban_comments, only: [] do
+    member do
+      post :like
+      delete :unlike
+      post :add_reaction
+      delete :remove_reaction
+    end
   end
 end

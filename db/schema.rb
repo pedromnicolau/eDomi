@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_01_09_120000) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_15_014231) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -113,10 +113,13 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_09_120000) do
     t.jsonb "checklist", default: []
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.json "edit_history", default: []
+    t.bigint "property_id"
     t.index ["assigned_user_id"], name: "index_kanban_cards_on_assigned_user_id"
     t.index ["checklist"], name: "index_kanban_cards_on_checklist", using: :gin
     t.index ["client_info"], name: "index_kanban_cards_on_client_info", using: :gin
     t.index ["kanban_column_id"], name: "index_kanban_cards_on_kanban_column_id"
+    t.index ["property_id"], name: "index_kanban_cards_on_property_id"
     t.index ["tags"], name: "index_kanban_cards_on_tags", using: :gin
   end
 
@@ -128,6 +131,21 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_09_120000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["kanban_board_id"], name: "index_kanban_columns_on_kanban_board_id"
+  end
+
+  create_table "kanban_comments", force: :cascade do |t|
+    t.bigint "kanban_card_id", null: false
+    t.bigint "user_id"
+    t.text "body", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "parent_comment_id"
+    t.integer "likes_count", default: 0
+    t.json "reactions", default: []
+    t.index ["created_at"], name: "index_kanban_comments_on_created_at"
+    t.index ["kanban_card_id"], name: "index_kanban_comments_on_kanban_card_id"
+    t.index ["parent_comment_id"], name: "index_kanban_comments_on_parent_comment_id"
+    t.index ["user_id"], name: "index_kanban_comments_on_user_id"
   end
 
   create_table "notifications", force: :cascade do |t|
@@ -254,8 +272,12 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_09_120000) do
   add_foreign_key "commissions", "sales"
   add_foreign_key "commissions", "users", column: "agent_id"
   add_foreign_key "kanban_cards", "kanban_columns"
+  add_foreign_key "kanban_cards", "properties"
   add_foreign_key "kanban_cards", "users", column: "assigned_user_id"
   add_foreign_key "kanban_columns", "kanban_boards"
+  add_foreign_key "kanban_comments", "kanban_cards"
+  add_foreign_key "kanban_comments", "kanban_comments", column: "parent_comment_id"
+  add_foreign_key "kanban_comments", "users"
   add_foreign_key "notifications", "users"
   add_foreign_key "properties", "users", column: "agent_id"
   add_foreign_key "property_photos", "properties"

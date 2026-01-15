@@ -2,9 +2,9 @@
   <nav class="navbar navbar-expand-lg shadow-sm">
     <div class="container d-flex align-items-center">
       <div class="me-auto d-flex align-items-center">
-        <router-link to="/" class="navbar-brand d-flex align-items-center">
+        <button class="navbar-brand d-flex align-items-center btn btn-link p-0 border-0 bg-transparent" type="button" @click="handleLogoClick">
           <img :src="logoSrc" class="logo-mark" alt="eDomi" />
-        </router-link>
+        </button>
         <div v-if="isPrivileged" class="ms-2 position-relative" ref="modeRef">
           <button
             class="btn btn-mode-toggle"
@@ -130,6 +130,7 @@ import { useRouter } from 'vue-router'
 const router = useRouter()
 const user = ref(null)
 const canCreate = ref(false)
+const logoNextInternal = ref(false)
 
 /* novo: src dinâmico para evitar resolução estática pelo Vite */
 const logoSrc = '/logo_2.png'
@@ -141,6 +142,14 @@ const loadingNotifications = ref(false)
 const mode = ref('public')
 const modeOpen = ref(false)
 const modeRef = ref(null)
+
+function handleLogoClick() {
+  const goInternal = logoNextInternal.value
+  const target = goInternal ? '/internal' : '/'
+  mode.value = goInternal ? 'internal' : 'public'
+  logoNextInternal.value = !logoNextInternal.value
+  router.push(target)
+}
 
 /* dropdown state and ref para click-outside */
 const dropdownOpen = ref(false)
