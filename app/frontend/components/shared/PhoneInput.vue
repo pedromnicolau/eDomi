@@ -287,7 +287,7 @@ defineExpose({ validatePhone })
 
 <style scoped>
 .phone-input-wrapper {
-  margin-bottom: 1rem;
+  margin-bottom: 0;
 }
 
 .phone-input-group {
@@ -298,42 +298,64 @@ defineExpose({ validatePhone })
 .country-select {
   flex: 0 0 auto;
   min-width: 90px;
-  padding: 0.5rem 0.75rem;
-  border: 1px solid #dee2e6;
-  border-radius: 8px;
-  background: white;
-  color: rgba(15, 35, 77, 0.8);
-  font-size: 0.875rem;
+  padding: 0.375rem 0.75rem;
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #212529;
+  background-color: #fff;
+  background-clip: padding-box;
+  border: 1px solid #ced4da;
+  appearance: none;
+  border-radius: 0.375rem;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
   cursor: pointer;
-  transition: all 0.2s ease;
 }
 
 .country-select:hover {
-  border-color: rgba(15, 35, 77, 0.2);
+  border-color: #ced4da;
 }
 
 .country-select:focus {
-  outline: none;
-  border-color: #4ADE80;
-  box-shadow: 0 0 0 0.2rem rgba(74, 222, 128, 0.25);
+  color: #212529;
+  background-color: #fff;
+  border-color: #86b7fe;
+  outline: 0;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
 }
 
 .country-select.is-invalid {
   border-color: #dc3545;
 }
 
+.country-select.is-invalid:focus {
+  border-color: #dc3545;
+  box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25);
+}
+
 .phone-input {
   flex: 1;
-  padding: 0.5rem 0.75rem;
-  border: 1px solid #dee2e6;
-  border-radius: 8px;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  display: block;
+  width: 100%;
+  padding: 0.375rem 0.75rem;
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #212529;
+  background-color: #fff;
+  background-clip: padding-box;
+  border: 1px solid #ced4da;
+  appearance: none;
+  border-radius: 0.375rem;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
 
 .phone-input:focus {
-  border-color: #4ADE80;
-  box-shadow: 0 0 0 0.2rem rgba(74, 222, 128, 0.25);
+  color: #212529;
+  background-color: #fff;
+  border-color: #86b7fe;
   outline: 0;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
 }
 
 .phone-input.is-invalid {
@@ -342,17 +364,18 @@ defineExpose({ validatePhone })
 
 .phone-input.is-invalid:focus {
   border-color: #dc3545;
-  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+  box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25);
 }
 
 .invalid-feedback {
   color: #dc3545;
-  font-size: 0.875rem;
+  font-size: 0.875em;
   margin-top: 0.25rem;
 }
 
 .form-text {
-  color: #6c757d;
   margin-top: 0.25rem;
+  font-size: 0.875em;
+  color: #6c757d;
 }
 </style>

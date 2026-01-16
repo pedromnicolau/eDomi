@@ -487,6 +487,12 @@ function handleClickOutside(e) {
   }
 }
 
+function handleEscape(event) {
+  if (event.key === 'Escape') {
+    closeOnBackdrop()
+  }
+}
+
 onMounted(() => {
   loadPeople()
   loadComments()
@@ -498,10 +504,13 @@ onMounted(() => {
       currentUserName.value = user.name || user.email
     })
     .catch(e => console.error('Erro ao obter usuário atual', e))
+
+  window.addEventListener('keydown', handleEscape)
 })
 
 onBeforeUnmount(() => {
   document.removeEventListener('click', handleClickOutside, true)
+  window.removeEventListener('keydown', handleEscape)
   if (saveTimer.value) clearTimeout(saveTimer.value)
 })
 
@@ -1137,7 +1146,6 @@ async function submitReply() {
 }
 
 .edit-details {
-  margin: 6px 0 0 32px;
   padding: 8px 8px;
   background: #f8f9fa;
   border-left: 2px solid #dee2e6;

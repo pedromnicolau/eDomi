@@ -127,10 +127,4 @@ class KanbanCardsController < ApplicationController
   def card_params
     params.require(:kanban_card).permit(:title, :description, :kanban_column_id, :assigned_user_id, :client_id, :position, client_info: {}, tags: [], checklist: [])
   end
-
-  def ensure_privileged!
-    unless current_user&.admin? || current_user&.agent?
-      render json: { error: "Não autorizado" }, status: :forbidden
-    end
-  end
 end

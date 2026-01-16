@@ -43,10 +43,4 @@ class KanbanBoardsController < ApplicationController
   def board_params
     params.require(:kanban_board).permit(:name)
   end
-
-  def ensure_privileged!
-    unless current_user&.admin? || current_user&.agent?
-      render json: { error: "Não autorizado" }, status: :forbidden
-    end
-  end
 end

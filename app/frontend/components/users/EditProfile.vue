@@ -5,24 +5,27 @@
         <h5 class="card-title mb-3">Editar perfil</h5>
 
         <form @submit.prevent="submitForm" class="needs-validation" novalidate>
-          <div class="mb-3">
-            <label class="form-label">Nome</label>
-            <input name="user[name]" v-model="name" type="text" class="form-control" required />
-          </div>
+          <div class="row mb-3">
+            <div class="col-md-4">
+              <label class="form-label">Nome Completo</label>
+              <input name="user[name]" v-model="name" type="text" class="form-control" required />
+            </div>
 
-          <div class="mb-3">
-            <label class="form-label">E‑mail</label>
-            <input name="user[email]" v-model="email" type="email" class="form-control" required />
-          </div>
+            <div class="col-md-4">
+              <label class="form-label">E‑mail</label>
+              <input name="user[email]" v-model="email" type="email" class="form-control" required />
+            </div>
 
-          <PhoneInput
-            v-model="phone"
-            label="Telefone"
-            :error="phoneError"
-            hint="Informe seu número com DDD. Selecione o país e digite o número."
-            @update:error="phoneError = $event"
-          />
-          <input name="user[phone]" type="hidden" :value="phone" />
+            <div class="col-md-4">
+              <PhoneInput
+                v-model="phone"
+                label="Telefone"
+                :error="phoneError"
+                @update:error="phoneError = $event"
+              />
+              <input name="user[phone]" type="hidden" :value="phone" />
+            </div>
+          </div>
 
           <hr class="my-4">
 

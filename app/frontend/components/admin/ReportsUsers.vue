@@ -21,6 +21,7 @@
                <th>Nome</th>
                <th>Telefone</th>
                <th>Email</th>
+               <th>Papel</th>
                <th style="width: 120px;">Ações</th>
              </tr>
            </thead>
@@ -29,6 +30,7 @@
                <td>{{ u.name || '-' }}</td>
                <td>{{ u.phone || '-' }}</td>
                <td>{{ u.email || '-' }}</td>
+               <td>{{ roleLabel(u.role) }}</td>
                <td>
                  <button class="btn btn-sm btn-outline-primary me-1" @click="openEditModal(u)" title="Editar">
                    <i class="fa-solid fa-pen"></i>
@@ -135,6 +137,14 @@
               <input v-model="formData.email" type="email" class="form-control" placeholder="email@exemplo.com" />
             </div>
             <div class="mb-3">
+              <label class="form-label">Papel</label>
+              <select v-model="formData.role" class="form-control">
+                <option v-for="option in roleOptions" :key="option.value" :value="option.value">
+                  {{ option.label }}
+                </option>
+              </select>
+            </div>
+            <div class="mb-3">
               <label class="form-label">CPF</label>
               <input v-model="formData.cpf" type="text" class="form-control" placeholder="000.000.000-00" />
             </div>
@@ -180,7 +190,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import PhoneInput from '../shared/PhoneInput.vue'
 const router = useRouter()
@@ -198,13 +208,35 @@ const deleting = ref(false)
 const currentPage = ref(1)
 const itemsPerPage = ref(10)
 const phoneError = ref('')
+const roleOptions = [
+  { value: 'cliente', label: 'Cliente' },
+  { value: 'investidor', label: 'Investidor' },
+  { value: 'proprietario', label: 'Proprietário' },
+  { value: 'corretor', label: 'Corretor' },
+  { value: 'parceiro', label: 'Parceiro' },
+  { value: 'inquilino', label: 'Inquilino' },
+  { value: 'lead', label: 'Lead' }
+]
+const roleLabels = roleOptions.reduce((acc, option) => {
+  acc[option.value] = option.label
+  return acc
+}, {})
+const roleLabel = role => roleLabels[role] || '-'
+
+const handleEscape = event => {
+  if (event.key === 'Escape') {
+    if (showModal.value) closeModal()
+    if (showDeleteConfirm.value) showDeleteConfirm.value = false
+  }
+}
 
 const formData = ref({
   name: '',
   phone: '',
   email: '',
   cpf: '',
-  notes: ''
+  notes: '',
+  role: 'cliente'
 })
 
 const getCsrf = () => document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
@@ -219,7 +251,14 @@ const fetchRecords = async () => {
   loading.value = false
 }
 
-onMounted(fetchRecords)
+onMounted(() => {
+  fetchRecords()
+  window.addEventListener('keydown', handleEscape)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', handleEscape)
+})
 
 const filtered = computed(() => {
   const list = records.value || []
@@ -309,7 +348,8 @@ function openCreateModal() {
     phone: '',
     email: '',
     cpf: '',
-    notes: ''
+    notes: '',
+    role: 'cliente'
   }
   phoneError.value = ''
   showModal.value = true
@@ -322,7 +362,8 @@ function openEditModal(person) {
     phone: person.phone || '',
     email: person.email || '',
     cpf: person.cpf || '',
-    notes: person.notes || ''
+    notes: person.notes || '',
+    role: person.role || 'cliente'
   }
   phoneError.value = ''
   showModal.value = true

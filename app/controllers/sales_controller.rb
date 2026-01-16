@@ -1,4 +1,7 @@
 class SalesController < ApplicationController
+  before_action :authenticate_user!
+  before_action :ensure_privileged!
+
   # GET /sales.json
   def index
     sales = Sale.joins(:property, :agent).where(properties: { status: "sold" })

@@ -6,6 +6,15 @@ class Person < ApplicationRecord
 
   enum :status, { prospect: 0, client: 1, inactive: 2 }
   enum :preferred_contact_method, { phone: 0, email: 1, whatsapp: 2 }
+  enum :role, {
+    cliente: 0,
+    investidor: 1,
+    proprietario: 2,
+    corretor: 3,
+    parceiro: 4,
+    inquilino: 5,
+    lead: 6
+  }
 
   validates :name, presence: true
   validates :email, uniqueness: { case_sensitive: false }, allow_blank: true, format: { with: URI::MailTo::EMAIL_REGEXP, allow_blank: true }

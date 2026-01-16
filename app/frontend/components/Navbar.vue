@@ -148,6 +148,15 @@ const modeOpen = ref(false)
 const modeRef = ref(null)
 
 function handleLogoClick() {
+  // Se não estiver logado ou for buyer, sempre redirecionar para home pública
+  if (!user.value || user.value.role === 0 || user.value.role === 'buyer') {
+    mode.value = 'public'
+    logoNextInternal.value = false
+    router.push('/')
+    return
+  }
+  
+  // Para usuários privilegiados (agent/admin), alternar entre interno/público
   const goInternal = logoNextInternal.value
   const target = goInternal ? '/internal' : '/'
   mode.value = goInternal ? 'internal' : 'public'
@@ -612,6 +621,12 @@ watch(user, async (v) => {
   color: inherit;        /* mantém a cor original (#fff do navbar) */
   background-color: rgba(255,255,255,0.1); /* leve efeito visual de hover */
   border-color: rgba(255,255,255,0.2);    /* mantém borda */
+}
+
+/* hover verde específico para o texto do nome de perfil */
+.user-dropdown .btn-outline-light:hover span,
+.user-dropdown .btn-outline-light:focus span {
+  color: #fff;;
 }
 
 /* estilo do ícone do sino (usa Font Awesome) */

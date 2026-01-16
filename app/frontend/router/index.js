@@ -69,5 +69,59 @@ const router = createRouter({
   routes,
 })
 
+// Navigation guard para verificar autenticação e permissões
+router.beforeEach(async (to, from, next) => {
+  const requiresAuth = to.matched.some(record => record.meta.requiresPrivileged || record.meta.requiresAdmin)
+  
+  if (requiresAuth) {
+    try {
+      const response = await fetch('/current_user', { credentials: 'same-origin' })
+      
+      if (!response.ok) {
+        // Usuário não autenticado
+        next({ name: 'sign-in', query: { redirect: to.fullPath } })
+        return
+      }
+      
+      const user = await response.json()
+      
+      if (!user || !user.id) {
+        // Sem usuário logado
+        next({ name: 'sign-in', query: { redirect: to.fullPath } })
+        return
+      }
+      
+      // Verifica se é buyer (role 0) - não tem acesso às áreas internas
+      if (user.role === 0 || user.role === 'buyer') {
+        next({ name: 'home' })
+        return
+      }
+      
+      // Verifica se a rota requer admin
+      if (to.meta.requiresAdmin) {
+        if (user.role !== 2 && user.role !== 'admin') {
+          next({ name: 'home' })
+          return
+        }
+      }
+      
+      // Verifica se a rota requer privilegiado (agent ou admin)
+      if (to.meta.requiresPrivileged) {
+        if (user.role !== 1 && user.role !== 'agent' && user.role !== 2 && user.role !== 'admin') {
+          next({ name: 'home' })
+          return
+        }
+      }
+      
+      next()
+    } catch (error) {
+      console.error('Erro ao verificar autenticação:', error)
+      next({ name: 'sign-in', query: { redirect: to.fullPath } })
+    }
+  } else {
+    next()
+  }
+})
+
 export { router }
 export default router

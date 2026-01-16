@@ -7,14 +7,26 @@ class ApplicationController < ActionController::Base
 
   def configure_permitted_parameters
     # para atualização de conta
-    devise_parameter_sanitizer.permit(:account_update, keys: [:name])
+    devise_parameter_sanitizer.permit(:account_update, keys: [ :name ])
     # se quiser permitir na criação de conta também
-    devise_parameter_sanitizer.permit(:sign_up, keys: [:name])
+    devise_parameter_sanitizer.permit(:sign_up, keys: [ :name ])
   end
 
   private
 
   def set_locale
     I18n.locale = :'pt-BR'
+  end
+
+  def ensure_privileged!
+    unless current_user&.admin? || current_user&.agent?
+      render json: { error: "Acesso negado. Apenas agentes e administradores podem acessar." }, status: :forbidden
+    end
+  end
+
+  def ensure_admin!
+    unless current_user&.admin?
+      render json: { error: "Acesso negado. Apenas administradores podem acessar." }, status: :forbidden
+    end
   end
 end

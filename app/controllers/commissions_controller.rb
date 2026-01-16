@@ -1,4 +1,7 @@
 class CommissionsController < ApplicationController
+  before_action :authenticate_user!
+  before_action :ensure_privileged!
+
   # GET /commissions.json
   # optional filters: agent_id, start_date, end_date
   def index
@@ -37,10 +40,10 @@ class CommissionsController < ApplicationController
     scope = scope.where(agent_id: params[:agent_id]) if params[:agent_id].present?
 
     if params[:start_date].present?
-      scope = scope.where('paid_at >= ?', params[:start_date].to_date.beginning_of_day)
+      scope = scope.where("paid_at >= ?", params[:start_date].to_date.beginning_of_day)
     end
     if params[:end_date].present?
-      scope = scope.where('paid_at <= ?', params[:end_date].to_date.end_of_day)
+      scope = scope.where("paid_at <= ?", params[:end_date].to_date.end_of_day)
     end
 
     totals = scope.group(:agent_id).sum(:value) # returns { agent_id => BigDecimal }

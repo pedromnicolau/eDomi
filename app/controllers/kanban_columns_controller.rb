@@ -49,10 +49,4 @@ class KanbanColumnsController < ApplicationController
   def column_params
     params.require(:kanban_column).permit(:name, :color, :position, :kanban_board_id)
   end
-
-  def ensure_privileged!
-    unless current_user&.admin? || current_user&.agent?
-      render json: { error: "Não autorizado" }, status: :forbidden
-    end
-  end
 end

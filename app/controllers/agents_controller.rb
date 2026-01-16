@@ -1,4 +1,7 @@
 class AgentsController < ApplicationController
+  before_action :authenticate_user!
+  before_action :ensure_privileged!
+
   def index
     respond_to do |format|
       format.html {
