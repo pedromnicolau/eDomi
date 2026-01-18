@@ -1,5 +1,7 @@
 class Property < ApplicationRecord
   belongs_to :agent, class_name: "User"
+  belongs_to :owner, class_name: "Person", optional: true
+  belongs_to :tenant, class_name: "Person", optional: true
   has_many :property_photos, dependent: :destroy
 
   has_one :address, as: :addressable, dependent: :destroy

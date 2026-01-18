@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_01_15_210401) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_18_182755) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -58,6 +58,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_15_210401) do
     t.datetime "updated_at", null: false
     t.string "addressable_type", null: false
     t.bigint "addressable_id", null: false
+    t.string "number"
     t.index ["addressable_type", "addressable_id"], name: "index_addresses_on_addressable"
     t.check_constraint "char_length(state::text) = 2", name: "addresses_state_len_2"
   end
@@ -193,11 +194,15 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_15_210401) do
     t.bigint "agent_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "owner_id"
+    t.bigint "tenant_id"
     t.index ["agent_id"], name: "index_properties_on_agent_id"
     t.index ["bedrooms", "bathrooms"], name: "index_properties_on_bedrooms_and_bathrooms"
+    t.index ["owner_id"], name: "index_properties_on_owner_id"
     t.index ["price"], name: "index_properties_on_price"
     t.index ["property_type"], name: "index_properties_on_property_type"
     t.index ["status"], name: "index_properties_on_status"
+    t.index ["tenant_id"], name: "index_properties_on_tenant_id"
     t.check_constraint "bathrooms >= 0", name: "properties_bathrooms_non_negative"
     t.check_constraint "bedrooms >= 0", name: "properties_bedrooms_non_negative"
     t.check_constraint "condominium_fee >= 0::numeric", name: "properties_condo_fee_non_negative"
@@ -283,6 +288,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_15_210401) do
   add_foreign_key "kanban_comments", "kanban_comments", column: "parent_comment_id"
   add_foreign_key "kanban_comments", "users"
   add_foreign_key "notifications", "users"
+  add_foreign_key "properties", "people", column: "owner_id"
+  add_foreign_key "properties", "people", column: "tenant_id"
   add_foreign_key "properties", "users", column: "agent_id"
   add_foreign_key "property_photos", "properties"
   add_foreign_key "sales", "properties"

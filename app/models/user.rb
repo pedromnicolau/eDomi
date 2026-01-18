@@ -10,6 +10,11 @@ class User < ApplicationRecord
   has_many :notifications, dependent: :destroy
   belongs_to :person, optional: true
 
+  # Define role padrão como buyer
+  before_validation :set_default_role
+
+  validates :role, presence: true
+
   # cria automaticamente uma Person associada após criar o User (se ainda não houver)
   after_create :ensure_person_exists
   before_validation :normalize_phone
@@ -68,9 +73,20 @@ class User < ApplicationRecord
   def ensure_person_exists
     return if person.present?
 
+    # Tenta vincular a uma pessoa existente por e-mail (case-insensitive)
+    normalized_email = email.to_s.strip.downcase.presence
+    if normalized_email
+      existing_person = Person.find_by(email: normalized_email)
+      if existing_person
+        update_column(:person_id, existing_person.id)
+        return
+      end
+    end
+
+    # Se não houver pessoa existente, cria uma nova com mesmo nome/e-mail
     person_attrs = {
       name: (name.presence || email),
-      email: (email.presence || nil)
+      email: normalized_email
     }
 
     p = Person.new(person_attrs)
@@ -80,5 +96,9 @@ class User < ApplicationRecord
     else
       Rails.logger.warn("Failed to create Person for User##{id}: #{p.errors.full_messages.join('; ')}")
     end
+  end
+
+  def set_default_role
+    self.role ||= :buyer
   end
 end

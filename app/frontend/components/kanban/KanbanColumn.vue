@@ -1,22 +1,23 @@
 <template>
   <div class="card p-2 kanban-column-wrapper" :style="{ background: '#f8f9fb' }">
     <div class="d-flex align-items-center mb-2 gap-2">
-      <div v-if="!editingColumn" class="d-flex align-items-center w-100 gap-2">
-        <div :style="{ width: '10px', height: '10px', background: column.color, borderRadius: '2px' }"></div>
-        <strong class="flex-grow-1">{{ column.name }}</strong>
+      <div v-if="!editingColumnName && !editingColumnColor" class="d-flex align-items-center w-100 gap-2">
+        <div class="column-color-editable" @click="startEditColor" title="Clique para alterar a cor">
+          <div :style="{ width: '10px', height: '10px', background: column.color, borderRadius: '2px' }"></div>
+        </div>
+        <div class="column-name-editable flex-grow-1" @click="startEditName" title="Clique para renomear">
+          <strong>{{ column.name }}</strong>
+        </div>
         <div class="ms-auto dropdown-container">
           <button class="btn btn-sm btn-outline-secondary" @click.stop="toggleDropdown">⋯</button>
           <div v-if="showDropdown" class="dropdown-menu-custom" @click.stop>
-            <button class="dropdown-item" @click="openEdit">Editar</button>
             <button class="dropdown-item text-danger" @click="remove">Excluir</button>
           </div>
         </div>
       </div>
       <div v-else class="d-flex align-items-center w-100 gap-2">
-        <input type="color" v-model="editColor" class="form-control form-control-sm color-input" />
-        <input v-model="editName" class="form-control form-control-sm" />
-        <button class="btn btn-primary btn-sm" @click="saveEdit">Salvar</button>
-        <button class="btn btn-link btn-sm" @click="cancelEdit">Cancelar</button>
+        <input v-if="editingColumnColor" ref="colorInputRef" type="color" v-model="editColor" class="form-control form-control-sm color-input" @change="handleColorBlur" @blur="handleColorBlur" />
+        <input v-if="editingColumnName" ref="nameInputRef" v-model="editName" class="form-control form-control-sm" @blur="handleNameBlur" @keyup.enter.prevent="handleNameBlur" />
       </div>
     </div>
 
@@ -55,7 +56,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import KanbanCard from './KanbanCard.vue'
 import CardModal from './CardModal.vue'
 import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
@@ -64,9 +65,12 @@ import * as api from '@/api/kanban'
 const props = defineProps({ column: Object, columns: { type: Array, default: () => [] } })
 const emit = defineEmits(['update-column', 'delete-column', 'create-card', 'move-card', 'open-attachment'])
 
-const editingColumn = ref(false)
+const editingColumnName = ref(false)
+const editingColumnColor = ref(false)
 const editName = ref('')
 const editColor = ref('#7c8cff')
+const nameInputRef = ref(null)
+const colorInputRef = ref(null)
 const showDropdown = ref(false)
 
 const showCardModal = ref(false)
@@ -83,17 +87,49 @@ function toggleDropdown() {
   showDropdown.value = !showDropdown.value
 }
 
-function openEdit() {
-  showDropdown.value = false
-  editingColumn.value = true
+function startEditName() {
+  if (showDropdown.value) return
+  editingColumnName.value = true
   editName.value = props.column.name
-  editColor.value = props.column.color || '#7c8cff'
+  nextTick(() => {
+    if (nameInputRef.value) {
+      nameInputRef.value.focus()
+      nameInputRef.value.select()
+    }
+  })
 }
-function cancelEdit() { editingColumn.value = false }
-async function saveEdit() {
-  const updated = await api.updateColumn(props.column.id, { name: editName.value, color: editColor.value })
+
+function startEditColor() {
+  if (showDropdown.value) return
+  editingColumnColor.value = true
+  editColor.value = props.column.color || '#7c8cff'
+  nextTick(() => {
+    if (colorInputRef.value) {
+      colorInputRef.value.click()
+    }
+  })
+}
+
+async function handleNameBlur() {
+  if (!editingColumnName.value) return
+  const name = editName.value.trim()
+  editingColumnName.value = false
+  
+  if (!name || name === props.column.name) return
+  
+  const updated = await api.updateColumn(props.column.id, { name })
   emit('update-column', updated)
-  editingColumn.value = false
+}
+
+async function handleColorBlur() {
+  if (!editingColumnColor.value) return
+  const color = editColor.value
+  editingColumnColor.value = false
+  
+  if (!color || color === props.column.color) return
+  
+  const updated = await api.updateColumn(props.column.id, { color })
+  emit('update-column', updated)
 }
 
 async function remove() {
@@ -267,5 +303,31 @@ body.is-dragging-card * {
 
 .dropdown-item:last-child {
   border-radius: 0 0 4px 4px;
+}
+
+.column-color-editable {
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 4px;
+  transition: background-color 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.column-color-editable:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.column-name-editable {
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: background-color 0.15s ease;
+  user-select: none;
+}
+
+.column-name-editable:hover {
+  background-color: rgba(0, 0, 0, 0.05);
 }
 </style>

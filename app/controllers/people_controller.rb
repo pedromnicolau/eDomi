@@ -65,7 +65,7 @@ class PeopleController < ApplicationController
     params.require(:person).permit(
       :name, :email, :phone, :birthdate, :status, :preferred_contact_method,
       :notes, :active, :assigned_agent_id, :cpf, :role,
-      addresses_attributes: [ :id, :address_line1, :address_line2, :city, :state, :zip_code, :address_type, :primary, :_destroy ]
+      addresses_attributes: [ :id, :address_line1, :address_line2, :number, :city, :state, :zip_code, :address_type, :primary, :_destroy ]
     )
   end
 end

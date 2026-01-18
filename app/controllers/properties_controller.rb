@@ -17,11 +17,13 @@ class PropertiesController < ApplicationController
           :bedrooms, :bathrooms, :parking_spaces, :furnished,
           :condominium_fee, :iptu, :address, :property_type,
           :status, :area, :year_built, :agent_id,
+          :owner_id, :tenant_id,
           :neighborhood, :zip_code
         ],
         methods: [ :agent_name, :photos_urls, :photos_data ]
       ).merge(
         address: p.address&.address_line1,
+        number: p.address&.number,
         neighborhood: p.address&.neighborhood,
         city: p.address&.city,
         state: p.address&.state,
@@ -36,11 +38,13 @@ class PropertiesController < ApplicationController
       only: [
         :id, :title, :description, :price,
         :bedrooms, :bathrooms, :parking_spaces, :furnished,
-        :condominium_fee, :iptu, :property_type, :status, :area, :year_built, :agent_id
+        :condominium_fee, :iptu, :property_type, :status, :area, :year_built, :agent_id,
+        :owner_id, :tenant_id
       ],
       methods: [ :agent_name, :photos_urls, :photos_data ]
     ).merge(
       address: @property.address&.address_line1,
+      number: @property.address&.number,
       neighborhood: @property.address&.neighborhood,
       city: @property.address&.city,
       state: @property.address&.state,
@@ -53,7 +57,7 @@ class PropertiesController < ApplicationController
     permitted = property_params
     @property = Property.new(permitted.except(
       :uploaded_photos, :remove_photo_blob_ids,
-      :address, :neighborhood, :city, :state, :zip_code, :country, :agent_id
+      :address, :number, :neighborhood, :city, :state, :zip_code, :country, :agent_id
     ))
 
     # regra de atribuição do corretor responsável
@@ -110,7 +114,7 @@ class PropertiesController < ApplicationController
 
     if @property.update(permitted.except(
       :uploaded_photos, :remove_photo_blob_ids,
-      :address, :neighborhood, :city, :state, :zip_code, :country, :agent_id
+      :address, :number, :neighborhood, :city, :state, :zip_code, :country, :agent_id
     ))
       # remove attachments indicados (se houver)
       if property_params[:remove_photo_blob_ids].present?
@@ -163,9 +167,9 @@ class PropertiesController < ApplicationController
       :title, :description, :price,
       :property_type, :area, :bedrooms, :bathrooms, :parking_spaces,
       :furnished, :condominium_fee, :iptu, :year_built,
-      :address, :neighborhood, :city, :state, :zip_code, :country,
+      :address, :number, :neighborhood, :city, :state, :zip_code, :country,
       :status,
-      :agent_id,
+      :agent_id, :owner_id, :tenant_id,
       uploaded_photos: [], remove_photo_blob_ids: []
     )
   end
@@ -178,6 +182,7 @@ class PropertiesController < ApplicationController
 
     # pp pode ser ActionController::Parameters; extrair valores com to_h/[] seguros
     addr_line = pp[:address].to_s.strip if pp[:address]
+    number = pp[:number].to_s.strip if pp[:number]
     city = pp[:city].to_s.strip if pp[:city]
     state = pp[:state].to_s.strip if pp[:state]
     neighborhood = pp[:neighborhood].to_s.strip if pp[:neighborhood]
@@ -185,11 +190,12 @@ class PropertiesController < ApplicationController
     country = pp[:country].presence || "BR"
 
     # decidir se há dados suficientes para criar/atualizar
-    has_any = [ addr_line, city, state, neighborhood, zip_code ].any? { |v| v.present? }
+    has_any = [ addr_line, number, city, state, neighborhood, zip_code ].any? { |v| v.present? }
     return unless has_any
 
     attrs = {
       address_line1: addr_line.presence || "",
+      number: number.presence,
       neighborhood: neighborhood.presence,
       city: city.presence,
       state: state.presence,

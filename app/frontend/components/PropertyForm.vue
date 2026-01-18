@@ -15,115 +15,185 @@
 
         <form @submit.prevent="submit" enctype="multipart/form-data" novalidate>
           <div class="row g-3">
-            <div class="col-md-6">
-              <label class="form-label">Título</label>
-              <input class="form-control form-control-lg" v-model="form.title" required />
-            </div>
-            <div class="col-md-6">
-              <label class="form-label">Preço (R$)</label>
-              <input type="number" class="form-control form-control-lg" v-model.number="form.price" required />
-            </div>
-
-            <div class="col-md-6">
-              <label class="form-label">Cidade</label>
-              <input class="form-control" v-model="form.city" required />
-            </div>
-            <div class="col-md-6">
-              <label class="form-label">Estado (2 letras)</label>
-              <input class="form-control text-uppercase" maxlength="2" v-model="form.state" required />
-            </div>
-
-            <div class="col-md-4">
-              <label class="form-label">Quartos</label>
-              <input type="number" class="form-control" v-model.number="form.bedrooms" min="0" />
-            </div>
-            <div class="col-md-4">
-              <label class="form-label">Banheiros</label>
-              <input type="number" class="form-control" v-model.number="form.bathrooms" min="0" />
-            </div>
-            <div class="col-md-4">
-              <label class="form-label">Vagas</label>
-              <input type="number" class="form-control" v-model.number="form.parking_spaces" min="0" />
-            </div>
-
+            <!-- Seção: Informações Principais -->
             <div class="col-md-12">
-              <label class="form-label">Descrição</label>
-              <textarea class="form-control" rows="3" v-model="form.description"></textarea>
-            </div>
-
-            <div class="col-md-12">
-              <label class="form-label">Endereço</label>
-              <input class="form-control" v-model="form.address" required />
-            </div>
-
-            <div class="col-md-6">
-              <label class="form-label">Bairro</label>
-              <input class="form-control" v-model="form.neighborhood" />
-            </div>
-            <div class="col-md-6">
-              <label class="form-label">CEP</label>
-              <input class="form-control" v-model="form.zip_code" />
-            </div>
-
-            <div class="col-md-6">
-              <label class="form-label">Tipo de imóvel</label>
-              <select class="form-select" v-model="form.property_type" required>
-                <option disabled value="">Selecione...</option>
-                <option value="house">Casa</option>
-                <option value="apartment">Apartamento</option>
-                <option value="land">Terreno</option>
-                <option value="commercial">Comercial</option>
-              </select>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label">Área (m²)</label>
-              <input type="number" step="0.01" class="form-control" v-model.number="form.area" />
-            </div>
-
-            <div class="col-md-6">
-              <label class="form-label">Condomínio (R$)</label>
-              <input type="number" step="0.01" min="0" class="form-control" v-model.number="form.condominium_fee" />
-            </div>
-            <div class="col-md-6">
-              <label class="form-label">IPTU (R$)</label>
-              <input type="number" step="0.01" min="0" class="form-control" v-model.number="form.iptu" />
-            </div>
-
-            <div class="col-md-6">
-              <label class="form-label">Ano de construção</label>
-              <input type="number" class="form-control" v-model.number="form.year_built" />
-            </div>
-
-            <div class="col-md-6">
-              <label class="form-label">Status</label>
-              <select class="form-select" v-model="form.status">
-                <option value="available">Disponível</option>
-                <option value="under_offer">Em negociação</option>
-                <option value="sold">Vendido</option>
-              </select>
-            </div>
-
-            <div v-if="canEditAgent" class="col-md-12">
-              <label class="form-label">Corretor responsável</label>
-              <select class="form-select" v-model.number="form.agent_id">
-                <option :value="null">Selecione um corretor...</option>
-                <option v-for="a in agents" :key="a.id" :value="a.id">
-                  {{ a.name || a.email }}
-                </option>
-              </select>
-              <div class="form-text small">Somente administradores e corretores podem alterar este campo.</div>
-            </div>
-
-            <div class="col-12">
-              <div class="form-check form-switch mt-2">
-                <input class="form-check-input" type="checkbox" id="furnished" v-model="form.furnished" />
-                <label class="form-check-label" for="furnished">Mobiliado</label>
+              <div class="section-card">
+                <div class="row g-3">
+                  <div class="col-md-8">
+                    <label class="form-label fw-semibold">Título do Imóvel</label>
+                    <input class="form-control form-control-lg" v-model="form.title" required />
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label fw-semibold">Preço (R$)</label>
+                    <input type="number" class="form-control form-control-lg" v-model.number="form.price" required />
+                  </div>
+                  <div class="col-md-12">
+                    <label class="form-label">Descrição</label>
+                    <textarea class="form-control" rows="3" v-model="form.description" placeholder="Descreva os destaques do imóvel..."></textarea>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div class="col-12 mt-3">
-              <label class="form-label">Fotos do imóvel</label>
-              <input ref="fileInput" type="file" multiple class="form-control" @change="onFilesChange" />
+            <!-- Seção: Endereço (com melhor layout) -->
+            <div class="col-md-12">
+              <div class="section-card">
+                <h6 class="section-title">Endereço</h6>
+                <div class="row g-3">
+                  <div class="col-md-2">
+                    <label class="form-label">CEP</label>
+                    <div class="position-relative">
+                      <input 
+                        class="form-control" 
+                        v-model="form.zip_code" 
+                        @blur="fetchAddressFromCep"
+                        @input="handleCepInput"
+                        maxlength="9"
+                        placeholder="00000-000"
+                      />
+                      <span v-if="cepLoading" class="position-absolute end-0 top-50 translate-middle-y me-2">
+                        <span class="spinner-border spinner-border-sm text-primary" role="status" aria-hidden="true"></span>
+                      </span>
+                    </div>
+                    <div v-if="cepError" class="form-text text-danger small">{{ cepError }}</div>
+                  </div>
+                  <div class="col-md-8">
+                    <label class="form-label">Endereço (Rua/Avenida)</label>
+                    <input class="form-control" v-model="form.address" required />
+                  </div>
+                  <div class="col-md-2">
+                    <label class="form-label">Número</label>
+                    <input class="form-control" v-model="form.number" placeholder="123" />
+                  </div>
+                  <div class="col-md-5">
+                    <label class="form-label">Bairro</label>
+                    <input class="form-control" v-model="form.neighborhood" />
+                  </div>
+                  <div class="col-md-5">
+                    <label class="form-label">Cidade</label>
+                    <input class="form-control" v-model="form.city" required />
+                  </div>
+                  <div class="col-md-2">
+                    <label class="form-label">Estado</label>
+                    <input class="form-control text-uppercase" maxlength="2" v-model="form.state" required />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Seção: Características -->
+            <div class="col-md-12">
+              <div class="section-card">
+                <h6 class="section-title">Características</h6>
+                <div class="row g-3">
+                  <div class="col-md-4">
+                    <label class="form-label">Tipo de Imóvel</label>
+                    <select class="form-select" v-model="form.property_type" required>
+                      <option disabled value="">Selecione...</option>
+                      <option value="house">Casa</option>
+                      <option value="apartment">Apartamento</option>
+                      <option value="land">Terreno</option>
+                      <option value="commercial">Comercial</option>
+                    </select>
+                  </div>
+                  <div class="col-md-2">
+                    <label class="form-label">Área (m²)</label>
+                    <input type="number" step="0.01" class="form-control" v-model.number="form.area" />
+                  </div>
+                  <div class="col-md-2">
+                    <label class="form-label">Quartos</label>
+                    <input type="number" class="form-control" v-model.number="form.bedrooms" min="0" />
+                  </div>
+                  <div class="col-md-2">
+                    <label class="form-label">Banheiros</label>
+                    <input type="number" class="form-control" v-model.number="form.bathrooms" min="0" />
+                  </div>
+                  <div class="col-md-2">
+                    <label class="form-label">Vagas</label>
+                    <input type="number" class="form-control" v-model.number="form.parking_spaces" min="0" />
+                  </div>
+                  <div class="col-md-2">
+                    <label class="form-label">Condomínio (R$)</label>
+                    <input type="number" step="0.01" min="0" class="form-control" v-model.number="form.condominium_fee" />
+                  </div>
+                  <div class="col-md-2">
+                    <label class="form-label">IPTU (R$)</label>
+                    <input type="number" step="0.01" min="0" class="form-control" v-model.number="form.iptu" />
+                  </div>
+                  <div class="col-md-2">
+                    <label class="form-label">Ano construção</label>
+                    <input type="number" class="form-control" v-model.number="form.year_built" placeholder="2020" />
+                  </div>
+                  <div class="col-md-2">
+                    <label class="form-label">Mobiliado</label>
+                    <select class="form-select" v-model="form.furnished">
+                      <option :value="null">Selecione</option>
+                      <option :value="true">Sim</option>
+                      <option :value="false">Não</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Seção: Status -->
+            <div class="col-md-12">
+              <div class="section-card">
+                <h6 class="section-title">Status</h6>
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label class="form-label">Status do Imóvel</label>
+                    <select class="form-select" v-model="form.status">
+                      <option value="available">Disponível</option>
+                      <option value="under_offer">Em Negociação</option>
+                      <option value="sold">Vendido</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div v-if="canEditAgent" class="col-md-12">
+              <div class="section-card">
+                <h6 class="section-title">Pessoas relacionadas</h6>
+                <div class="row g-3">
+                  <div class="col-md-4">
+                    <label class="form-label">Corretor Responsável</label>
+                    <select class="form-select" v-model.number="form.agent_id">
+                      <option :value="null">Selecione um corretor...</option>
+                      <option v-for="a in agents" :key="a.id" :value="a.id">
+                        {{ a.name || a.email }}
+                      </option>
+                    </select>
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label">Proprietário</label>
+                    <select class="form-select" v-model.number="form.owner_id">
+                      <option :value="null">Nenhum selecionado</option>
+                      <option v-for="p in people" :key="p.id" :value="p.id">
+                        {{ p.name }}
+                      </option>
+                    </select>
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label">Inquilino</label>
+                    <select class="form-select" v-model.number="form.tenant_id">
+                      <option :value="null">Nenhum selecionado</option>
+                      <option v-for="p in people" :key="p.id" :value="p.id">
+                        {{ p.name }}
+                      </option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Seção: Fotos -->
+            <div class="col-12">
+              <div class="section-card">
+                <h6 class="section-title">Galeria de Fotos</h6>
+                <label class="form-label">Selecione as fotos do imóvel</label>
+                <input ref="fileInput" type="file" multiple class="form-control" @change="onFilesChange" />
 
               <div v-if="previewUrls.length" class="preview-container mt-3 d-flex flex-wrap gap-3">
                 <div
@@ -142,7 +212,7 @@
               </div>
 
               <div v-if="existingPhotos.length" class="mt-3">
-               
+                <p class="small text-muted mb-2">Fotos salvas:</p>
                 <div class="d-flex flex-wrap gap-3">
                   <div
                     v-for="(p, idx) in existingPhotos"
@@ -162,6 +232,7 @@
                   Marcou {{ removedBlobIds.length }} foto(s) para remoção
                 </div>
               </div>
+            </div>
             </div>
           </div>
 
@@ -201,6 +272,7 @@ const form = ref({
   price: 0,
   property_type: '',     // required
   address: '',           // required
+  number: '',
   neighborhood: '',
   zip_code: '',
   city: '',
@@ -214,14 +286,18 @@ const form = ref({
   iptu: 0.0,
   year_built: null,
   status: 'available',
-  description: ''
+  description: '',
+  agent_id: null,
+  owner_id: null,
+  tenant_id: null
 })
 
 // controle de quem é o corretor responsável (visível somente para agentes/admins)
 const currentUser = ref(null)
 const canEditAgent = ref(false)
-const agents = ref([]) // lista combinada de opções (admins + agentes conforme regras)
-form.value.agent_id = null // id do corretor responsável
+const agents = ref([])
+const people = ref([])
+form.value.agent_id = null
 
 const loading = ref(false)
 const error = ref(null)
@@ -231,6 +307,10 @@ const persistentError = ref(null)
 // novo estado para submissão
 const submitting = ref(false)
 const success = ref(null)
+
+// estados para busca de CEP
+const cepLoading = ref(false)
+const cepError = ref(null)
 
 const files = ref([])
 const previewUrls = ref([])
@@ -261,6 +341,7 @@ const load = async () => {
       price: data.price ?? 0,
       property_type: data.property_type ?? '',
       address: data.address ?? '',
+      number: data.number ?? '',
       neighborhood: data.neighborhood ?? '',
       zip_code: data.zip_code ?? '',
       city: data.city ?? '',
@@ -275,7 +356,9 @@ const load = async () => {
       year_built: data.year_built ?? null,
       status: data.status ?? 'available',
       description: data.description ?? '',
-      agent_id: data.agent_id ?? null
+      agent_id: data.agent_id ?? null,
+      owner_id: data.owner_id ?? null,
+      tenant_id: data.tenant_id ?? null
     })
     existingPhotos.value = data.photos_data || []
   } catch (e) {
@@ -313,6 +396,13 @@ onMounted(async () => {
         }
         // ordena por nome/email
         agents.value.sort((a,b) => (a.name||a.email||'').localeCompare(b.name||b.email||''))
+      }
+      
+      // carrega lista de pessoas para proprietário e inquilino
+      const pRes = await fetch('/people.json', { credentials: 'same-origin' })
+      if (pRes.ok) {
+        people.value = await pRes.json()
+        people.value.sort((a,b) => (a.name||'').localeCompare(b.name||''))
       }
     }
   } catch {}
@@ -445,6 +535,63 @@ const submit = async () => {
 const closePersistentError = () => {
   persistentError.value = null
 }
+
+// Formata o CEP enquanto o usuário digita
+const handleCepInput = (e) => {
+  let value = e.target.value.replace(/\D/g, '') // Remove não-dígitos
+  if (value.length > 5) {
+    value = value.slice(0, 5) + '-' + value.slice(5, 8)
+  }
+  form.value.zip_code = value
+  cepError.value = null
+}
+
+// Busca endereço pela API ViaCEP quando o usuário sai do campo
+const fetchAddressFromCep = async () => {
+  const cep = form.value.zip_code?.replace(/\D/g, '') // Remove formatação
+  
+  if (!cep || cep.length !== 8) {
+    return // CEP inválido ou incompleto, não faz nada
+  }
+  
+  cepLoading.value = true
+  cepError.value = null
+  
+  try {
+    const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`)
+    
+    if (!response.ok) {
+      throw new Error('Erro ao consultar CEP')
+    }
+    
+    const data = await response.json()
+    
+    if (data.erro) {
+      cepError.value = 'CEP não encontrado'
+      return
+    }
+    
+    // Preenche os campos automaticamente
+    if (data.logradouro) {
+      form.value.address = data.logradouro
+    }
+    if (data.bairro) {
+      form.value.neighborhood = data.bairro
+    }
+    if (data.localidade) {
+      form.value.city = data.localidade
+    }
+    if (data.uf) {
+      form.value.state = data.uf.toUpperCase()
+    }
+    
+  } catch (err) {
+    console.error('Erro ao buscar CEP:', err)
+    cepError.value = 'Erro ao consultar CEP. Tente novamente.'
+  } finally {
+    cepLoading.value = false
+  }
+}
 </script>
 
 <style scoped>
@@ -455,6 +602,31 @@ const closePersistentError = () => {
 
 .form-card {
   max-width: 900px;
+}
+
+.section-card {
+  background: #ffffff;
+  border: 1px solid #e9ecef;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  margin-bottom: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.section-card:hover {
+  border-color: #dee2e6;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.section-title {
+  color: #495057;
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #f0f0f0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .preview-box {
@@ -489,10 +661,5 @@ const closePersistentError = () => {
 
 .btn-outline-secondary:hover {
   background-color: #f1f1f1;
-}
-
-/* destaque leve para o seletor de corretor responsável */
-select.form-select[v-model="form.agent_id"] {
-  border-color: #e9ecef;
 }
 </style>
