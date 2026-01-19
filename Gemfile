@@ -64,7 +64,7 @@ gem "image_processing", "~> 1.14"
 
 gem "devise", "~> 4.9"
 
-gem "resend", "~> 0.10"
+gem "resend", "~> 1.0"
 
 gem "dotenv-rails", groups: [:development, :test]
 
