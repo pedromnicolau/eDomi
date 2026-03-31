@@ -250,6 +250,19 @@
                 {{ isEdit ? 'Salvar Alterações' : 'Criar Imóvel' }}
               </span>
             </button>
+            <button
+              v-if="isEdit"
+              class="btn btn-outline-danger ms-2 px-4 py-2"
+              type="button"
+              :disabled="deleting || submitting"
+              @click="removeProperty"
+            >
+              <span v-if="deleting" class="d-inline-flex align-items-center">
+                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                Excluindo...
+              </span>
+              <span v-else>Excluir Imóvel</span>
+            </button>
             <router-link to="/" class="btn btn-outline-secondary ms-2 px-4 py-2">Cancelar</router-link>
           </div>
         </form>
@@ -306,6 +319,7 @@ const persistentError = ref(null)
 
 // novo estado para submissão
 const submitting = ref(false)
+const deleting = ref(false)
 const success = ref(null)
 
 // estados para busca de CEP
@@ -528,6 +542,47 @@ const submit = async () => {
     error.value = e.message || String(e)
   } finally {
     submitting.value = false
+  }
+}
+
+const removeProperty = async () => {
+  if (!isEdit) return
+  if (!confirm('Confirma exclusão do imóvel? Esta ação não pode ser desfeita.')) return
+
+  error.value = null
+  deleting.value = true
+  try {
+    const res = await fetch(`/properties/${id}.json`, {
+      method: 'DELETE',
+      headers: {
+        'X-CSRF-Token': getCsrf()
+      },
+      credentials: 'same-origin'
+    })
+
+    if (!res.ok) {
+      let message = 'Erro ao excluir imóvel'
+      const contentType = res.headers.get('content-type') || ''
+
+      if (contentType.includes('application/json')) {
+        const bodyErr = await res.json().catch(() => null)
+        message = bodyErr?.error || bodyErr?.errors || message
+      } else {
+        const txt = await res.text().catch(() => '')
+        if (txt && !txt.toLowerCase().includes('<!doctype html')) {
+          message = txt
+        }
+      }
+
+      throw new Error(message)
+    }
+
+    alert('Imóvel excluído com sucesso.')
+    router.push({ path: '/' })
+  } catch (e) {
+    error.value = e.message || String(e)
+  } finally {
+    deleting.value = false
   }
 }
 

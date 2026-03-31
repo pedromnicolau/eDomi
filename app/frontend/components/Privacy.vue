@@ -8,7 +8,7 @@
       <h4>Uso e armazenamento</h4>
       <p>Seus dados são utilizados para comunicação e melhoria do serviço. Não vendemos suas informações.</p>
       <h4>Contato</h4>
-      <p>Para dúvidas sobre privacidade, envie um e-mail para contato@edomi.example</p>
+      <p>Para dúvidas sobre privacidade, envie um e-mail para contato@edomi.com.br</p>
     </section>
   </div>
 </template>

@@ -137,8 +137,30 @@ class PropertiesController < ApplicationController
   end
 
   def destroy
-    @property.destroy
+    if Sale.exists?(property_id: @property.id)
+      render json: { error: "Não é possível excluir este imóvel porque ele possui venda vinculada." }, status: :unprocessable_entity
+      return
+    end
+
+    active_visit_statuses = [ Visit.statuses[:pending], Visit.statuses[:confirmed] ]
+    if Visit.where(property_id: @property.id, status: active_visit_statuses).exists?
+      render json: { error: "Não é possível excluir este imóvel porque ele possui visitas ativas vinculadas." }, status: :unprocessable_entity
+      return
+    end
+
+    # Visitas canceladas ainda referenciam o imóvel no banco.
+    # Se só houver canceladas, removemos antes da exclusão do imóvel.
+    Visit.where(property_id: @property.id, status: Visit.statuses[:cancelled]).delete_all
+
+    @property.destroy!
     head :no_content
+  rescue ActiveRecord::InvalidForeignKey
+    render json: { error: "Não foi possível excluir este imóvel porque ele possui registros vinculados." }, status: :unprocessable_entity
+  rescue ActiveRecord::RecordNotDestroyed => e
+    render json: { error: e.record.errors.full_messages.join(", ").presence || "Não foi possível excluir este imóvel." }, status: :unprocessable_entity
+  rescue => e
+    Rails.logger.error("Property destroy failed id=#{@property.id}: #{e.class} #{e.message}")
+    render json: { error: "Erro interno ao excluir imóvel." }, status: :internal_server_error
   end
 
   private

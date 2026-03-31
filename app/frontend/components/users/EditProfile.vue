@@ -156,6 +156,14 @@ const user = ref(null)
 
 const route = useRoute()
 
+// helper para validar formato de telefone (dígitos apenas; aceita DDD, opcional +55)
+const isValidPhone = (p) => {
+  if (!p) return false
+  const digits = String(p).replace(/\D/g, '')
+  // espera pelo menos 10 dígitos (DDD + número) e no máximo 13 (+55 com código)
+  return digits.length >= 10 && digits.length <= 13
+}
+
 const requirePhone = computed(() => {
   try {
     const v = route.query.require_phone
