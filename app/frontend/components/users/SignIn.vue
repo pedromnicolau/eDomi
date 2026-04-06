@@ -133,8 +133,21 @@ const handleSubmit = async () => {
     const data = await response.json()
 
     if (response.ok) {
-      // Login bem-sucedido, redireciona para home
-      window.location.href = '/'
+      // Confirma se a sessão ficou persistida antes de redirecionar.
+      const currentUserResponse = await fetch('/current_user', {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' },
+        credentials: 'same-origin'
+      })
+
+      const currentUser = currentUserResponse.ok ? await currentUserResponse.json() : null
+
+      if (currentUser && currentUser.id) {
+        // Login bem-sucedido, redireciona para home
+        window.location.href = '/'
+      } else {
+        errorMessage.value = 'Seu login foi aceito, mas a sessão não foi mantida no navegador. Atualize a página e tente novamente.'
+      }
     } else {
       // Exibe mensagem de erro
       errorMessage.value = data.error || 'Email ou senha incorretos. Verifique suas credenciais e tente novamente.'

@@ -14,14 +14,20 @@ class Users::SessionsController < Devise::SessionsController
         name: resource.name
       }, status: :ok
     else
+      Rails.logger.warn(
+        "[AUTH] Invalid credentials for email=#{params.dig(:user, :email).to_s.downcase} ip=#{request.remote_ip} ua=#{request.user_agent}"
+      )
       render json: {
         error: "Email ou senha incorretos. Verifique suas credenciais e tente novamente."
       }, status: :unauthorized
     end
-  rescue => e
+  rescue StandardError => e
+    Rails.logger.error(
+      "[AUTH] Login error: #{e.class}: #{e.message} email=#{params.dig(:user, :email).to_s.downcase} ip=#{request.remote_ip}\n#{e.backtrace&.first(8)&.join("\n")}"
+    )
     render json: {
-      error: "Email ou senha incorretos. Verifique suas credenciais e tente novamente."
-    }, status: :unauthorized
+      error: "Erro interno ao tentar fazer login. Tente novamente em instantes."
+    }, status: :internal_server_error
   end
 
   def destroy
