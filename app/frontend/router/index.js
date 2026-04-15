@@ -28,7 +28,8 @@ import InternalDashboard from '@/components/InternalDashboard.vue'
 import KanbanBoard from '@/components/kanban/KanbanBoard.vue'
 
 const routes = [
-  { path: '/', name: 'home', component: PropertiesList },
+  { path: '/', name: 'home', component: About },
+  { path: '/properties', name: 'properties-list', component: PropertiesList },
   { path: '/about', name: 'about', component: About },
   { path: '/contact', name: 'contact', component: Contact },
   { path: '/properties/new', name: 'properties-new', component: PropertyForm },
