@@ -6,9 +6,9 @@
       <div class="hero-inner container">
         <div class="hero-copy">
           <h1>Construindo o futuro do seu próximo lar</h1>
-          <p class="lead">Tecnologia, transparência e atendimento humano para encontrar o imóvel ideal — seja para morar, investir ou empreender.</p>
+          <p class="lead">Tecnologia, transparência e atendimento humano para encontrar o imóvel ideal - seja para morar, investir ou empreender.</p>
           <div class="cta-group">
-            <router-link to="/" class="btn-view-imoveis btn-cta">Ver Imóveis</router-link>
+            <router-link to="/properties" class="btn-view-imoveis btn-cta">Ver Imóveis</router-link>
             <router-link to="/contact" class="btn-outline-cta">Fale com um consultor</router-link>
           </div>
         </div>
@@ -56,6 +56,8 @@ const agents = [
 </script>
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Lora:wght@400;500&display=swap');
+
 .about-page {
   --primary: #1A2E66;
   --secondary: #4ADE80;
@@ -189,11 +191,22 @@ const agents = [
 .feature { background: #fff; border-radius: .6rem; padding: 1.25rem; text-align: center; box-shadow: var(--card-shadow); }
 .feature .icon { color: var(--primary); background: linear-gradient(180deg,#fff 0%, #f8fafc 100%); border-radius: 12px; padding: 12px; font-size: 20px; margin-bottom: .5rem; color: var(--primary); }
 .feature h3 { margin: 0 0 .5rem 0; color: var(--primary); }
-.feature p { color: var(--muted); margin: 0; }
+.feature p {
+  color: var(--muted);
+  margin: 0;
+  font-family: 'Lora', Georgia, serif;
+}
 
 /* explanatory paragraph styling */
 .about-explain { color: #0b2546; background: #fff; padding: 3rem 3.25rem; border-radius: .5rem; box-shadow: var(--card-shadow); }
-.about-explain p { margin: 0; color: var(--muted); }
+.about-explain p {
+  margin: 0;
+  color: #3d4f67;
+  font-family: 'Lora', Georgia, serif;
+  font-size: 1.08rem;
+  line-height: 1.9;
+  letter-spacing: 0.01em;
+}
 
 /* STATS STRIP */
 .stats-strip { background: linear-gradient(90deg, rgba(26,46,102,0.03), rgba(74,222,128,0.02)); padding: 1rem 0; margin: 2rem 0; border-radius: .5rem; }

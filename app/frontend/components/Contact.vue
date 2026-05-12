@@ -114,7 +114,6 @@ const clear = () => {
 <style scoped>
 .contact-page {
   background: #f9fafc;
-  min-height: 100vh;
   font-family: "Inter", sans-serif;
 }
 

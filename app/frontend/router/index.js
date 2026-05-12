@@ -1,7 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import About from '@/components/About.vue'
-import Contact from '@/components/Contact.vue'
-import PropertiesList from '@/components/PropertiesList.vue'
+import PublicLanding from '@/components/PublicLanding.vue'
 import PropertyShow from '@/components/PropertyShow.vue'
 import PropertyForm from '@/components/PropertyForm.vue'
 import SignIn from '@/components/users/SignIn.vue'
@@ -28,10 +26,10 @@ import InternalDashboard from '@/components/InternalDashboard.vue'
 import KanbanBoard from '@/components/kanban/KanbanBoard.vue'
 
 const routes = [
-  { path: '/', name: 'home', component: About },
-  { path: '/properties', name: 'properties-list', component: PropertiesList },
-  { path: '/about', name: 'about', component: About },
-  { path: '/contact', name: 'contact', component: Contact },
+  { path: '/', name: 'home', component: PublicLanding },
+  { path: '/properties', name: 'properties-list', component: PublicLanding },
+  { path: '/about', name: 'about', component: PublicLanding },
+  { path: '/contact', name: 'contact', component: PublicLanding },
   { path: '/properties/new', name: 'properties-new', component: PropertyForm },
   { path: '/properties/:id', name: 'properties-show', component: PropertyShow, props: true },
   { path: '/properties/:id/edit', name: 'properties-edit', component: PropertyForm, props: true },

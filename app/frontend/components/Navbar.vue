@@ -25,8 +25,8 @@
 
       <div class="mx-auto d-none d-lg-flex align-items-center">
         <template v-if="mode === 'public'">
-          <router-link to="/properties" class="btn btn-new mx-2">Imóveis</router-link>
           <router-link to="/about" class="btn btn-new mx-2">Sobre</router-link>
+          <router-link to="/properties" class="btn btn-new mx-2">Imóveis</router-link>
           <router-link to="/contact" class="btn btn-new mx-2">Contato</router-link>
           <router-link v-if="user" to="/calendar" class="btn btn-new mx-2">Visitas</router-link>
         </template>
@@ -118,7 +118,6 @@
           </template>
           <template v-else>
             <router-link class="btn btn-outline-light me-2" to="/users/sign_in">Entrar</router-link>
-            <router-link class="btn btn-light" to="/users/sign_up">Registrar</router-link>
           </template>
         </div>
       </div>
